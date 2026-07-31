@@ -1,4 +1,4 @@
-<?php 
+<?php
 // Start output buffering to prevent "headers already sent" errors
 ob_start();
 
@@ -14,7 +14,7 @@ if (!isset($_SESSION['user_logged_in']) || $_SESSION['user_logged_in'] !== true)
 // 2. AMBIL NAMA USER
 $user_name = $_SESSION['user_name'] ?? 'Admin Sistem';
 
-// 3. KIRA STATISTIK (DITAMBAH: status 'DIMAKLUM' kini dikira sebagai selesai)
+// 3. KIRA STATISTIK (status 'DIMAKLUM' kini dikira sebagai selesai)
 $count_all = $pdo->query("SELECT COUNT(*) as total FROM minit_surat");
 $total_surat = ($count_all) ? $count_all->fetch(PDO::FETCH_ASSOC)['total'] : 0;
 
@@ -69,9 +69,9 @@ $total_done = ($count_done) ? $count_done->fetch(PDO::FETCH_ASSOC)['total'] : 0;
             background-size: cover;
             background-attachment: fixed;
             background-position: center center;
-            filter: blur(8px); /* Ubah nilai 8px ini jika mahu lebih atau kurang kabur */
-            transform: scale(1.1); /* Mengelakkan kesan putih di tepi akibat blur */
-            z-index: -1; /* Memastikan latar belakang berada di lapisan paling bawah */
+            filter: blur(8px);
+            transform: scale(1.1);
+            z-index: -1;
         }
 
         .navbar { background: var(--primary-color); color: white; padding: 1.2rem 2rem; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
@@ -86,7 +86,6 @@ $total_done = ($count_done) ? $count_done->fetch(PDO::FETCH_ASSOC)['total'] : 0;
         td { padding: 16px; border-bottom: 1px solid var(--border-color); font-size: 0.95rem; color: #334155; }
         .status-badge { padding: 6px 12px; border-radius: 50px; font-size: 0.75rem; font-weight: 600; text-transform: uppercase; }
         .wait { background: #fee2e2; color: #991b1b; }
-        .done { background: #d1fae5; color: #065f46; }
         .selesai-badge { background: #e0e7ff; color: #4338ca; }
         
         /* Butang */
@@ -102,7 +101,7 @@ $total_done = ($count_done) ? $count_done->fetch(PDO::FETCH_ASSOC)['total'] : 0;
 <nav class="navbar">
     <h2><i class="fa-solid fa-folder-open"></i> Sistem Minit Digital</h2>
     <div class="header-actions">
-        <span><?= htmlspecialchars($user_name) ?></span>
+        <span style="color:white;"><?= htmlspecialchars($user_name) ?></span>
         <a href="daftar_surat.php" class="btn-daftar"><i class="fa-solid fa-plus"></i> Daftar Surat Masuk</a>
         <a href="logout.php" style="color:#f87171; text-decoration:none;"><i class="fa-solid fa-right-from-bracket"></i> Log Keluar</a>
     </div>
@@ -119,28 +118,41 @@ $total_done = ($count_done) ? $count_done->fetch(PDO::FETCH_ASSOC)['total'] : 0;
         <table>
             <thead>
                 <tr>
-                    <th>Tarikh</th><th>No. Rujukan</th><th>Daripada</th><th>Status</th><th>Tindakan</th><th>Maklum Kepada</th>
+                    <th>Tarikh</th><th>No. Rujukan</th><th>Daripada / Kolej</th><th>Status</th><th>Tindakan</th><th>Maklum Kepada</th>
                 </tr>
             </thead>
             <tbody>
                 <?php
                 $res = $pdo->query("SELECT * FROM minit_surat ORDER BY id DESC");
-                while($row = $res->fetch(PDO::FETCH_ASSOC)) {
-                    $status = trim($row['status'] ?? 'Menunggu');
-                    // Logik badge warna
-                    $badge = ($status == 'SELESAI TANDATANGAN' || $status == 'DIMAKLUM') ? 'selesai-badge' : 'wait';
-                    
-                    echo "<tr>
-                        <td>".date('d/m/Y', strtotime($row['tarikh_terima']))."</td>
-                        <td>".htmlspecialchars($row['no_rujukan'] ?? '-')."</td>
-                        <td>".htmlspecialchars($row['daripada'] ?? '-')."</td>
-                        <td><span class='status-badge {$badge}'>{$status}</span></td>
-                        <td>
-                            <a href='view_surat.php?id={$row['id']}' class='btn-view'><i class='fa-solid fa-eye'></i> Lihat</a><br>
-                            <a href='cetak_minit.php?id={$row['id']}' target='_blank' class='btn-print'><i class='fa-solid fa-print'></i> Cetak</a>
-                        </td>
-                        <td>" . (!empty($row['maklum_kepada']) ? "<span style='color:#0369a1; font-weight:bold;'>".$row['maklum_kepada']."</span>" : "<a href='maklum.php?id={$row['id']}' style='color:#7c3aed; text-decoration:none;'><i class='fa-solid fa-paper-plane'></i> Maklum</a>") . "</td>
-                    </tr>";
+                $rows = $res->fetchAll(PDO::FETCH_ASSOC);
+
+                if (count($rows) > 0) {
+                    foreach($rows as $row) {
+                        $status = trim($row['status'] ?? 'Menunggu');
+                        $badge = ($status == 'SELESAI TANDATANGAN' || $status == 'DIMAKLUM') ? 'selesai-badge' : 'wait';
+                        
+                        // Semak pelbagai kemungkinan nama kolum untuk tarikh dan pengirim
+                        $tarikh_raw = $row['tarikh_terima'] ?? ($row['created_at'] ?? date('Y-m-d'));
+                        $tarikh = ($tarikh_raw) ? date('d/m/Y', strtotime($tarikh_raw)) : '-';
+                        
+                        $rujukan = htmlspecialchars($row['no_rujukan'] ?? '-');
+                        // Menampung pelbagai variasi nama kolum pengirim di DB
+                        $daripada = htmlspecialchars($row['daripada'] ?? ($row['kolej'] ?? ($row['agensi'] ?? '-')));
+
+                        echo "<tr>
+                            <td>{$tarikh}</td>
+                            <td>{$rujukan}</td>
+                            <td>{$daripada}</td>
+                            <td><span class='status-badge {$badge}'>{$status}</span></td>
+                            <td>
+                                <a href='view_surat.php?id={$row['id']}' class='btn-view'><i class='fa-solid fa-eye'></i> Lihat</a><br>
+                                <a href='cetak_minit.php?id={$row['id']}' target='_blank' class='btn-print'><i class='fa-solid fa-print'></i> Cetak</a>
+                            </td>
+                            <td>" . (!empty($row['maklum_kepada']) ? "<span style='color:#0369a1; font-weight:bold;'>".$row['maklum_kepada']."</span>" : "<a href='maklum.php?id={$row['id']}' style='color:#7c3aed; text-decoration:none;'><i class='fa-solid fa-paper-plane'></i> Maklum</a>") . "</td>
+                        </tr>";
+                    }
+                } else {
+                    echo "<tr><td colspan='6' style='text-align:center; padding: 30px; color: #64748b;'>📂 Tiada rekod surat dijumpai dalam pangkalan data.</td></tr>";
                 }
                 ?>
             </tbody>
