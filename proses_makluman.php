@@ -63,11 +63,13 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         curl_setopt($ch, CURLOPT_HTTPHEADER, ['api-key: ' . $api_key, 'Content-Type: application/json']);
         $response = curl_exec($ch);
         $http_code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-        curl_close($ch);
+        // curl_close($ch) telah dibuang di sini untuk mengelakkan ralat PHP 8.0+
 
         if ($http_code == 201 || $http_code == 200) {
             echo "<script>alert('E-mel beserta Dokumen Asal dan Dokumen Minit berjaya dihantar kepada staf!'); window.location='homeadmin.php';</script>";
         } else {
+            // Anda boleh semak respons penuh dari Brevo jika masih gagal dengan menyah-komen baris di bawah:
+            // echo "Respon API: " . $response;
             echo "E-mel gagal dihantar. Sila semak API Key Brevo atau saiz fail lampiran di pelayan.";
         }
 
