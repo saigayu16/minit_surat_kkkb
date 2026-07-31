@@ -1,0 +1,10 @@
+[phases.setup]
+nixPkgs = [
+    "php",
+    "phpPackages.composer"
+]
+
+[phases.build]
+cmds = [
+    "echo 'extension=pdo_pgsql' >> $(php -r 'echo php_ini_loaded_file();')"
+]
