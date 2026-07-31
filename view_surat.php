@@ -4,8 +4,8 @@ include('db.php'); // Menjangkakan sambungan menggunakan $pdo
 if (!isset($_GET['id'])) { die("ID tidak dijumpai."); }
 $id = intval($_GET['id']);
 
-// Mengambil data surat menggunakan PDO prepared statement
-$stmt = $pdo->prepare("SELECT * FROM minit_surat WHERE id = ?");
+// Mengambil data surat menggunakan PDO prepared statement dengan senarai kolum penuh secara eksplisit
+$stmt = $pdo->prepare("SELECT id, no_rujukan, tarikh_terima, daripada, kepada, perkara, perkara_surat, kolej, didaftarkan_oleh, status, fail_surat, tempoh_tindakan, tandatangan_fail, tarikh_disahkan, target_role, catatan, tandatangan, arahan_pilihan, maklum_kepada, tandatangan_data, drive_file_id, arahan, created_at, staf_dimaklumkan FROM minit_surat WHERE id = ?");
 $stmt->execute([$id]);
 $row = $stmt->fetch(PDO::FETCH_ASSOC);
 
@@ -29,7 +29,7 @@ if (!empty($row['fail_surat']) && file_exists($fail_tempatan)) {
 <html lang="ms">
 <head>
     <meta charset="UTF-8">
-    <title>Paparan Rasmi - <?= htmlspecialchars($row['no_rujukan']) ?></title>
+    <title>Paparan Rasmi - <?= htmlspecialchars($row['no_rujukan'] ?? '-') ?></title>
     <style>
         body { 
             font-family: 'Segoe UI', sans-serif; 
@@ -67,7 +67,7 @@ if (!empty($row['fail_surat']) && file_exists($fail_tempatan)) {
 
 <div class="wrapper">
     <div class="card">
-        <h3>📄 Dokumen: <?= htmlspecialchars($row['no_rujukan']) ?></h3>
+        <h3>📄 Dokumen: <?= htmlspecialchars($row['no_rujukan'] ?? '-') ?></h3>
         
         <?php if ($sumber_fail): ?>
             <iframe src="<?= $sumber_fail ?>" width="100%" height="600px" style="border:1px solid #ddd;"></iframe>
@@ -80,7 +80,7 @@ if (!empty($row['fail_surat']) && file_exists($fail_tempatan)) {
 
     <div class="card">
         <h2>BORANG MINIT</h2>
-        <div class="info-row"><div class="info-label">Rujukan:</div> <div><?= htmlspecialchars($row['no_rujukan']) ?></div></div>
+        <div class="info-row"><div class="info-label">Rujukan:</div> <div><?= htmlspecialchars($row['no_rujukan'] ?? '-') ?></div></div>
         <div class="info-row"><div class="info-label">Kolej:</div> <div><?= htmlspecialchars($row['kolej'] ?? '-') ?></div></div>
         <hr>
         
