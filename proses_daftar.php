@@ -2,7 +2,7 @@
 ini_set('display_errors', 1);
 error_reporting(E_ALL);
 session_start();
-include('db.php'); // Assumed to return a PDO connection object $conn
+include('db.php'); // Menjangkakan sambungan menggunakan $pdo
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     // Semak jika data POST kosong disebabkan had saiz fail pelayan dilangkau
@@ -18,11 +18,11 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $kolej           = $_POST['kolej'] ?? '';
     $target_role     = $_POST['target_role'] ?? '';
     
-    // Ambil nama admin yang sedang log masuk dari session (diselaraskan kepada 'user_name')
+    // Ambil nama admin yang sedang log masuk dari session
     $didaftarkan_oleh = $_SESSION['user_name'] ?? 'Admin Sistem';
 
-    // 2. Dapatkan Emel Penerima Berdasarkan Role menggunakan PDO
-    $stmt_email = $conn->prepare("SELECT email FROM users WHERE role = ? LIMIT 1");
+    // 2. Dapatkan Emel Penerima Berdasarkan Role menggunakan PDO ($pdo)
+    $stmt_email = $pdo->prepare("SELECT email FROM users WHERE role = ? LIMIT 1");
     $stmt_email->execute([$target_role]);
     $user_row = $stmt_email->fetch(PDO::FETCH_ASSOC);
     $email_penerima = $user_row ? $user_row['email'] : null;
@@ -56,11 +56,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         }
     }
 
-    // 4. Simpan ke Database Neon (PostgreSQL)
-    // Nota: Lajur 'didaftarkan_oleh' kini disertakan supaya rekod simpan siapa yang daftarkan surat ini
+    // 4. Simpan ke Database Neon (PostgreSQL) menggunakan $pdo
     $sql = "INSERT INTO minit_surat (no_rujukan, tarikh_terima, daripada, perkara, kolej, target_role, status, drive_file_id, didaftarkan_oleh) 
             VALUES (?, ?, ?, ?, ?, ?, 'BARU', ?, ?)";
-    $stmt = $conn->prepare($sql);
+    $stmt = $pdo->prepare($sql);
     
     $success = $stmt->execute([
         $no_rujukan, 
@@ -74,9 +73,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     ]);
     
     if ($success) {
-        // Dapatkan ID rekod terakhir yang dimasukkan menggunakan PDO lastInsertId()
-        // (Pastikan primary key dalam jadual minit_surat menggunakan SERIAL atau IDENTITY di PostgreSQL)
-        $id_surat_baru = $conn->lastInsertId(); 
+        $id_surat_baru = $pdo->lastInsertId(); 
 
         // 5. Tentukan Halaman Dashboard Mengikut Logik Anda
         $protocol = isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? "https" : "http";
@@ -86,22 +83,20 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         $role = strtolower(trim($target_role)); 
         
         if (strpos($role, 'tpp') !== false) {
-            $halaman_tujuan = "hometpp.php"; // Timbalan Pengarah Pengurusan
+            $halaman_tujuan = "hometpp.php"; 
         } elseif (strpos($role, 'tpa') !== false) {
-            $halaman_tujuan = "hometpa.php"; // Timbalan Pengarah Akademik
+            $halaman_tujuan = "hometpa.php"; 
         } elseif (strpos($role, 'pengarah') !== false) {
-            $halaman_tujuan = "homedirector.php"; // Pengarah
+            $halaman_tujuan = "homedirector.php"; 
         }
 
-        // Pastikan role sah sebelum meneruskan
         if (empty($halaman_tujuan)) {
             die("Ralat: Kategori peranan ('$target_role') tidak sah.");
         }
 
-        // Gabungkan URL lengkap berserta ID surat ke fail dashboard khusus masing-masing
         $link_sistem = $protocol . "://$host/$halaman_tujuan?id=" . $id_surat_baru; 
 
-        // 6. Integrasi API Brevo (E-mel dengan Butang Link Website Khusus)
+        // 6. Integrasi API Brevo
         $api_key = getenv('BREVO_API_KEY');
         
         $data = [
@@ -118,7 +113,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             "
         ];
 
-        // Sertakan lampiran PDF jika wujud
         if ($base64_file && $file_name) {
             $data["attachment"] = [["content" => $base64_file, "name" => $file_name]];
         }
