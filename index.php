@@ -180,7 +180,7 @@
     <p class="welcome-subtitle">Sila klik mana-mana modul tugasan di bawah untuk ke halaman log masuk.</p>
 
     <div class="options-grid">
-        <a href="homeadmin.php" class="option-card">
+        <a href="login.php" class="option-card">
             <div class="option-icon icon-surat">
                 <i class="fa-solid fa-envelope-open-text"></i>
             </div>
