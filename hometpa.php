@@ -359,8 +359,8 @@ if($count_all) {
             </thead>
             <tbody>
                 <?php
-                // TAPISAN UTAMA: Hanya papar surat untuk TPA menggunakan PDO
-                $res = $pdo->query("SELECT * FROM minit_surat WHERE target_role = 'tpa' ORDER BY id DESC");
+                // TAPISAN UTAMA: Menggunakan kolum eksplisit untuk mengelakkan ralat cached plan PostgreSQL
+                $res = $pdo->query("SELECT id, no_rujukan, tarikh_terima, daripada, kepada, perkara, perkara_surat, kolej, didaftarkan_oleh, status, fail_surat, tempoh_tindakan, tandatangan_fail, tarikh_disahkan, target_role, catatan, tandatangan, arahan_pilihan, maklum_kepada, tandatangan_data, drive_file_id, arahan, created_at, staf_dimaklumkan FROM minit_surat WHERE target_role = 'tpa' ORDER BY id DESC");
                 
                 if ($res) {
                     $rows = $res->fetchAll(PDO::FETCH_ASSOC);
