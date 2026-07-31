@@ -1,28 +1,30 @@
 <?php
-// Start output buffering to prevent "headers already sent" errors
+// Mula output buffering untuk mengelakkan ralat header
 ob_start();
 
 session_start();
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+error_reporting(E_ALL);
+
 include('db.php'); 
 
-// 1. SEMAK SESI
-if (!isset($_SESSION['user_logged_in']) || $_SESSION['user_logged_in'] !== true) {
+// 1. SEMAK SESI (Menyokong pelbagai variasi nama sesi login)
+if (!isset($_SESSION['user_logged_in']) && !isset($_SESSION['user_name']) && !isset($_SESSION['username'])) {
     header("Location: login.php");
     exit;
 }
 
 // 2. AMBIL NAMA USER
-$user_name = $_SESSION['user_name'] ?? 'Admin Sistem';
+$user_name = $_SESSION['user_name'] ?? ($_SESSION['username'] ?? 'Admin Sistem');
 
-// 3. KIRA STATISTIK (status 'DIMAKLUM' dikira sebagai selesai)
+// 3. KIRA STATISTIK MENGGUNAKAN PDO
 $count_all = $pdo->query("SELECT COUNT(*) as total FROM minit_surat");
 $total_surat = ($count_all) ? $count_all->fetch(PDO::FETCH_ASSOC)['total'] : 0;
 
-// Query untuk 'Menunggu': status selain 'SELESAI TANDATANGAN' dan 'DIMAKLUM'
 $count_wait = $pdo->query("SELECT COUNT(*) as total FROM minit_surat WHERE status != 'SELESAI TANDATANGAN' AND status != 'DIMAKLUM'");
 $total_wait = ($count_wait) ? $count_wait->fetch(PDO::FETCH_ASSOC)['total'] : 0;
 
-// Query untuk 'Selesai': status 'SELESAI TANDATANGAN' atau 'DIMAKLUM'
 $count_done = $pdo->query("SELECT COUNT(*) as total FROM minit_surat WHERE status = 'SELESAI TANDATANGAN' OR status = 'DIMAKLUM'");
 $total_done = ($count_done) ? $count_done->fetch(PDO::FETCH_ASSOC)['total'] : 0;
 ?>
@@ -40,7 +42,6 @@ $total_done = ($count_done) ? $count_done->fetch(PDO::FETCH_ASSOC)['total'] : 0;
         :root {
             --primary-color: #1e293b;
             --accent-color: #2563eb;
-            --accent-hover: #1d4ed8;
             --card-bg: #ffffff;
             --text-main: #ffffff;
             --text-muted: #64748b;
@@ -54,9 +55,9 @@ $total_done = ($count_done) ? $count_done->fetch(PDO::FETCH_ASSOC)['total'] : 0;
             color: var(--text-main);
             position: relative;
             overflow-x: hidden;
+            min-height: 100vh;
         }
 
-        /* Lapisan khas untuk imej latar belakang dengan kesan blur */
         body::before {
             content: '';
             position: fixed;
@@ -88,7 +89,6 @@ $total_done = ($count_done) ? $count_done->fetch(PDO::FETCH_ASSOC)['total'] : 0;
         .wait { background: #fee2e2; color: #991b1b; }
         .selesai-badge { background: #e0e7ff; color: #4338ca; }
         
-        /* Butang */
         .btn-view { display: inline-block; padding: 6px 12px; background: #e0e7ff; color: #4338ca; border-radius: 4px; text-decoration: none; font-size: 0.8rem; font-weight: 600; margin-bottom: 5px; }
         .btn-print { display: inline-block; padding: 6px 12px; background: #dcfce7; color: #166534; border-radius: 4px; text-decoration: none; font-size: 0.8rem; font-weight: 600; }
         .btn-daftar { background: #059669; color: white; padding: 10px 18px; border-radius: 6px; text-decoration: none; font-size: 0.9rem; font-weight: 600; transition: background 0.3s; }
@@ -101,7 +101,7 @@ $total_done = ($count_done) ? $count_done->fetch(PDO::FETCH_ASSOC)['total'] : 0;
 <nav class="navbar">
     <h2><i class="fa-solid fa-folder-open"></i> Sistem Minit Digital</h2>
     <div class="header-actions">
-        <span style="color:white;"><?= htmlspecialchars($user_name) ?></span>
+        <span style="color:white;"><i class="fa-solid fa-user"></i> <?= htmlspecialchars($user_name) ?></span>
         <a href="daftar_surat.php" class="btn-daftar"><i class="fa-solid fa-plus"></i> Daftar Surat Masuk</a>
         <a href="logout.php" style="color:#f87171; text-decoration:none;"><i class="fa-solid fa-right-from-bracket"></i> Log Keluar</a>
     </div>
@@ -128,35 +128,38 @@ $total_done = ($count_done) ? $count_done->fetch(PDO::FETCH_ASSOC)['total'] : 0;
             </thead>
             <tbody>
                 <?php
-                $res = $pdo->query("SELECT * FROM minit_surat ORDER BY id DESC");
-                $rows = $res->fetchAll(PDO::FETCH_ASSOC);
+                try {
+                    $res = $pdo->query("SELECT * FROM minit_surat ORDER BY id DESC");
+                    $rows = $res->fetchAll(PDO::FETCH_ASSOC);
 
-                if (count($rows) > 0) {
-                    foreach($rows as $row) {
-                        $status = trim($row['status'] ?? 'Menunggu');
-                        $badge = ($status == 'SELESAI TANDATANGAN' || $status == 'DIMAKLUM') ? 'selesai-badge' : 'wait';
-                        
-                        // Menampung kolum tarikh (sama ada tarikh_terima atau created_at)
-                        $tarikh_raw = $row['tarikh_terima'] ?? ($row['created_at'] ?? '');
-                        $tarikh = !empty($tarikh_raw) ? date('d/m/Y', strtotime($tarikh_raw)) : '-';
-                        
-                        $rujukan = htmlspecialchars($row['no_rujukan'] ?? '-');
-                        $daripada = htmlspecialchars($row['daripada'] ?? '-');
+                    if ($rows && count($rows) > 0) {
+                        foreach($rows as $row) {
+                            $status = trim($row['status'] ?? 'Menunggu');
+                            $badge = ($status == 'SELESAI TANDATANGAN' || $status == 'DIMAKLUM') ? 'selesai-badge' : 'wait';
+                            
+                            $tarikh_raw = $row['tarikh_terima'] ?? ($row['created_at'] ?? '');
+                            $tarikh = !empty($tarikh_raw) ? date('d/m/Y', strtotime($tarikh_raw)) : '-';
+                            
+                            $rujukan = htmlspecialchars($row['no_rujukan'] ?? '-');
+                            $daripada = htmlspecialchars($row['daripada'] ?? '-');
 
-                        echo "<tr>
-                            <td>{$tarikh}</td>
-                            <td>{$rujukan}</td>
-                            <td>{$daripada}</td>
-                            <td><span class='status-badge {$badge}'>{$status}</span></td>
-                            <td>
-                                <a href='view_surat.php?id={$row['id']}' class='btn-view'><i class='fa-solid fa-eye'></i> Lihat</a><br>
-                                <a href='cetak_minit.php?id={$row['id']}' target='_blank' class='btn-print'><i class='fa-solid fa-print'></i> Cetak</a>
-                            </td>
-                            <td>" . (!empty($row['maklum_kepada']) ? "<span style='color:#0369a1; font-weight:bold;'>".$row['maklum_kepada']."</span>" : "<a href='maklum.php?id={$row['id']}' style='color:#7c3aed; text-decoration:none;'><i class='fa-solid fa-paper-plane'></i> Maklum</a>") . "</td>
-                        </tr>";
+                            echo "<tr>
+                                <td>{$tarikh}</td>
+                                <td>{$rujukan}</td>
+                                <td>{$daripada}</td>
+                                <td><span class='status-badge {$badge}'>{$status}</span></td>
+                                <td>
+                                    <a href='view_surat.php?id={$row['id']}' class='btn-view'><i class='fa-solid fa-eye'></i> Lihat</a><br>
+                                    <a href='cetak_minit.php?id={$row['id']}' target='_blank' class='btn-print'><i class='fa-solid fa-print'></i> Cetak</a>
+                                </td>
+                                <td>" . (!empty($row['maklum_kepada']) ? "<span style='color:#0369a1; font-weight:bold;'>".$row['maklum_kepada']."</span>" : "<a href='maklum.php?id={$row['id']}' style='color:#7c3aed; text-decoration:none;'><i class='fa-solid fa-paper-plane'></i> Maklum</a>") . "</td>
+                            </tr>";
+                        }
+                    } else {
+                        echo "<tr><td colspan='6' style='text-align:center; padding: 30px; color: #64748b;'>📂 Tiada rekod surat dijumpai dalam pangkalan data.</td></tr>";
                     }
-                } else {
-                    echo "<tr><td colspan='6' style='text-align:center; padding: 30px; color: #64748b;'>📂 Tiada rekod surat dijumpai dalam pangkalan data.</td></tr>";
+                } catch (PDOException $e) {
+                    echo "<tr><td colspan='6' style='text-align:center; padding: 30px; color: #991b1b;'>Ralat pangkalan data: " . htmlspecialchars($e->getMessage()) . "</td></tr>";
                 }
                 ?>
             </tbody>
