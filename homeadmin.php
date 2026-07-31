@@ -14,7 +14,7 @@ if (!isset($_SESSION['user_logged_in']) || $_SESSION['user_logged_in'] !== true)
 // 2. AMBIL NAMA USER
 $user_name = $_SESSION['user_name'] ?? 'Admin Sistem';
 
-// 3. KIRA STATISTIK (status 'DIMAKLUM' kini dikira sebagai selesai)
+// 3. KIRA STATISTIK (status 'DIMAKLUM' dikira sebagai selesai)
 $count_all = $pdo->query("SELECT COUNT(*) as total FROM minit_surat");
 $total_surat = ($count_all) ? $count_all->fetch(PDO::FETCH_ASSOC)['total'] : 0;
 
@@ -118,7 +118,12 @@ $total_done = ($count_done) ? $count_done->fetch(PDO::FETCH_ASSOC)['total'] : 0;
         <table>
             <thead>
                 <tr>
-                    <th>Tarikh</th><th>No. Rujukan</th><th>Daripada / Kolej</th><th>Status</th><th>Tindakan</th><th>Maklum Kepada</th>
+                    <th>Tarikh</th>
+                    <th>No. Rujukan</th>
+                    <th>Daripada</th>
+                    <th>Status</th>
+                    <th>Tindakan</th>
+                    <th>Maklum Kepada</th>
                 </tr>
             </thead>
             <tbody>
@@ -131,13 +136,12 @@ $total_done = ($count_done) ? $count_done->fetch(PDO::FETCH_ASSOC)['total'] : 0;
                         $status = trim($row['status'] ?? 'Menunggu');
                         $badge = ($status == 'SELESAI TANDATANGAN' || $status == 'DIMAKLUM') ? 'selesai-badge' : 'wait';
                         
-                        // Semak pelbagai kemungkinan nama kolum untuk tarikh dan pengirim
-                        $tarikh_raw = $row['tarikh_terima'] ?? ($row['created_at'] ?? date('Y-m-d'));
-                        $tarikh = ($tarikh_raw) ? date('d/m/Y', strtotime($tarikh_raw)) : '-';
+                        // Menampung kolum tarikh (sama ada tarikh_terima atau created_at)
+                        $tarikh_raw = $row['tarikh_terima'] ?? ($row['created_at'] ?? '');
+                        $tarikh = !empty($tarikh_raw) ? date('d/m/Y', strtotime($tarikh_raw)) : '-';
                         
                         $rujukan = htmlspecialchars($row['no_rujukan'] ?? '-');
-                        // Menampung pelbagai variasi nama kolum pengirim di DB
-                        $daripada = htmlspecialchars($row['daripada'] ?? ($row['kolej'] ?? ($row['agensi'] ?? '-')));
+                        $daripada = htmlspecialchars($row['daripada'] ?? '-');
 
                         echo "<tr>
                             <td>{$tarikh}</td>
