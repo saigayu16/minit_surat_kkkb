@@ -1,11 +1,24 @@
 <?php
-// Complete connection script using PDO for Neon PostgreSQL
-$dsn = "pgsql:host=ep-damp-shadow-adjtp5ul-pooler.c-2.us-east-1.aws.neon.tech;port=5432;dbname=neondb;user=neondb_owner;password=npg_7WhEkHOfIDLV;sslmode=require";
+// Retrieve environment variables set in your hosting/Neon setup
+$host = getenv('DB_HOST');
+$user = getenv('DB_USER');
+$pass = getenv('DB_PASSWORD');
+$db   = getenv('DB_NAME');
+$port = getenv('DB_PORT');
+
+// Fallback or direct connection configuration if environment variables aren't set
+// (You can also replace these with your direct Neon connection string if preferred)
+$dsn = "pgsql:host=$host;port=$port;dbname=$db;sslmode=require";
 
 try {
-    $pdo = new PDO($dsn);
-    echo "<h3>Success! Connected to Neon PostgreSQL database successfully.</h3>";
+    // Create a PDO connection for PostgreSQL
+    $pdo = new PDO($dsn, $user, $pass);
+    
+    // Set error mode to exception for easier debugging
+    $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+    
 } catch (PDOException $e) {
-    echo "<h3>Connection failed:</h3> " . $e->getMessage();
+    // Handle connection failure securely
+    die("Sambungan Gagal: " . $e->getMessage());
 }
 ?>
