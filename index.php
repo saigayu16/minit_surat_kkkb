@@ -188,7 +188,7 @@
             <p>Daftar maklumat surat masuk dan rujukan rasmi ke dalam sistem digital.</p>
         </a>
 
-        <a href="homeadmin.php" class="option-card">
+        <a href="login.php" class="option-card">
             <div class="option-icon icon-borang">
                 <i class="fa-solid fa-file-signature"></i>
             </div>
