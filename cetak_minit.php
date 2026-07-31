@@ -7,8 +7,8 @@ if (!isset($_GET['id']) || empty($_GET['id'])) { die("ID Dokumen tidak sah."); }
 
 $id = intval($_GET['id']);
 
-// Menggunakan PDO prepared statement untuk PostgreSQL
-$stmt = $pdo->prepare("SELECT * FROM minit_surat WHERE id = ?");
+// Menggunakan PDO prepared statement dengan senarai kolum penuh secara eksplisit untuk PostgreSQL
+$stmt = $pdo->prepare("SELECT id, no_rujukan, tarikh_terima, daripada, kepada, perkara, perkara_surat, kolej, didaftarkan_oleh, status, fail_surat, tempoh_tindakan, tandatangan_fail, tarikh_disahkan, target_role, catatan, tandatangan, arahan_pilihan, maklum_kepada, tandatangan_data, drive_file_id, arahan, created_at, staf_dimaklumkan FROM minit_surat WHERE id = ?");
 $stmt->execute([$id]);
 $row = $stmt->fetch(PDO::FETCH_ASSOC);
 
@@ -22,7 +22,7 @@ $daripada = htmlspecialchars($row['daripada'] ?? '-');
 $didaftarkan_oleh = htmlspecialchars($row['didaftarkan_oleh'] ?? 'Admin');
 $catatan = !empty($row['catatan']) ? nl2br(htmlspecialchars($row['catatan'])) : '<em>Tiada catatan diberikan.</em>';
 $arahan = htmlspecialchars($row['arahan_pilihan'] ?? 'TIADA ARAHAN');
-$tarikh_sah = !empty($row['tarikh_sah']) ? date('d/m/Y', strtotime($row['tarikh_sah'])) : date('d/m/Y');
+$tarikh_sah = !empty($row['tarikh_disahkan']) ? date('d/m/Y', strtotime($row['tarikh_disahkan'])) : (!empty($row['tarikh_sah']) ? date('d/m/Y', strtotime($row['tarikh_sah'])) : date('d/m/Y'));
 $signature_data = $row['tandatangan'] ?? ''; 
 ?>
 
