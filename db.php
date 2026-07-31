@@ -7,8 +7,8 @@ error_reporting(E_ALL);
 $dsn = "pgsql:host=ep-damp-shadow-adjtp5ul-pooler.c-2.us-east-1.aws.neon.tech;port=5432;dbname=neondb;user=neondb_owner;password=npg_ywILa5u2sOtv;sslmode=require";
 
 try {
-    // Create a PDO connection for PostgreSQL
-    $pdo = new PDO($dsn, null, null, [
+    // Tukar daripada $pdo kepada $conn di sini
+    $conn = new PDO($dsn, null, null, [
         PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
         PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
     ]);
@@ -17,4 +17,4 @@ try {
     // Handle connection failure securely
     die("Sambungan Gagal: " . $e->getMessage());
 }
-?>
+?>s
