@@ -113,7 +113,7 @@ if (!empty($row['fail_surat']) && file_exists($fail_tempatan)) {
             <a href="view_surat.php?id=<?= $next['id'] ?? $id ?>" class="btn-nav" <?= !$next ? 'style="visibility:hidden"' : '' ?>>Seterusnya ➡</a>
         </div>
         <br>
-        <a href="homedirector.php">⬅ Kembali ke Dashboard</a>
+        <a href="homeadmin.php">⬅ Kembali ke Dashboard</a>
     </div>
 </div>
 
