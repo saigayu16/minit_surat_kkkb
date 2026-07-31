@@ -1,7 +1,5 @@
 <?php
-// Mula output buffering untuk mengelakkan ralat header
 ob_start();
-
 session_start();
 ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
@@ -9,16 +7,14 @@ error_reporting(E_ALL);
 
 include('db.php'); 
 
-// 1. SEMAK SESI (Menyokong pelbagai variasi nama sesi login)
 if (!isset($_SESSION['user_logged_in']) && !isset($_SESSION['user_name']) && !isset($_SESSION['username'])) {
     header("Location: login.php");
     exit;
 }
 
-// 2. AMBIL NAMA USER
 $user_name = $_SESSION['user_name'] ?? ($_SESSION['username'] ?? 'Admin Sistem');
 
-// 3. KIRA STATISTIK MENGGUNAKAN PDO
+// KIRA STATISTIK
 $count_all = $pdo->query("SELECT COUNT(*) as total FROM minit_surat");
 $total_surat = ($count_all) ? $count_all->fetch(PDO::FETCH_ASSOC)['total'] : 0;
 
@@ -41,7 +37,6 @@ $total_done = ($count_done) ? $count_done->fetch(PDO::FETCH_ASSOC)['total'] : 0;
     <style>
         :root {
             --primary-color: #1e293b;
-            --accent-color: #2563eb;
             --card-bg: #ffffff;
             --text-main: #ffffff;
             --text-muted: #64748b;
@@ -129,7 +124,9 @@ $total_done = ($count_done) ? $count_done->fetch(PDO::FETCH_ASSOC)['total'] : 0;
             <tbody>
                 <?php
                 try {
-                    $res = $pdo->query("SELECT * FROM minit_surat ORDER BY id DESC");
+                    // Menggunakan SELECT kolum spesifik untuk mengelakkan ralat 'cached plan must not change result type'
+                    $sql = "SELECT id, no_rujukan, tarikh_terima, created_at, daripada, status, maklum_kepada FROM minit_surat ORDER BY id DESC";
+                    $res = $pdo->query($sql);
                     $rows = $res->fetchAll(PDO::FETCH_ASSOC);
 
                     if ($rows && count($rows) > 0) {
