@@ -173,8 +173,8 @@ if($count_kkkb) {
             </thead>
             <tbody>
                 <?php
-                // Menggunakan PDO untuk memaparkan senarai minit surat
-                $res = $pdo->query("SELECT * FROM minit_surat ORDER BY id DESC");
+                // Menggunakan senarai kolum eksplisit untuk mengelakkan ralat cached plan PostgreSQL
+                $res = $pdo->query("SELECT id, no_rujukan, tarikh_terima, daripada, kepada, perkara, perkara_surat, kolej, didaftarkan_oleh, status, fail_surat, tempoh_tindakan, tandatangan_fail, tarikh_disahkan, target_role, catatan, tandatangan, arahan_pilihan, maklum_kepada, tandatangan_data, drive_file_id, arahan, created_at, staf_dimaklumkan FROM minit_surat ORDER BY id DESC");
                 if ($res) {
                     $rows = $res->fetchAll(PDO::FETCH_ASSOC);
                     if (count($rows) > 0) {
