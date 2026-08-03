@@ -3,10 +3,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     include('db.php');
     
     $username = trim($_POST['username']);
-    $password = $_POST['password']; // Simpan terus tanpa hash (ikut keperluan anda)
+    $password = $_POST['password']; 
     $role     = $_POST['role'];
 
-    // Simpan ke DB secara terus
     $stmt = $conn->prepare("INSERT INTO users (username, password, role) VALUES (?, ?, ?)");
     $stmt->bind_param("sss", $username, $password, $role);
 
@@ -33,11 +32,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         :root {
             --neon-bg: #05050a;
             --neon-card: rgba(13, 13, 25, 0.85);
-            --neon-primary: #00f2fe; /* Cyan Terang */
-            --neon-secondary: #4facfe; /* Biru Neon */
-            --neon-accent: #a855f7; /* Ungu Neon */
+            --neon-primary: #00f2fe; 
+            --neon-secondary: #4facfe; 
             --neon-glow: 0 0 15px rgba(0, 242, 254, 0.4), 0 0 30px rgba(0, 242, 254, 0.2);
-            --neon-glow-purple: 0 0 15px rgba(168, 85, 247, 0.4);
             --text-main: #f8fafc;
             --text-muted: #94a3b8;
             --border-color: rgba(0, 242, 254, 0.3);
@@ -59,7 +56,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             height: 100vh;
         }
 
-        /* Kad Gaya Neon Glassmorphism */
         .register-card { 
             background: var(--neon-card); 
             backdrop-filter: blur(16px); 
@@ -73,7 +69,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             position: relative;
         }
 
-        /* Kesan Garisan Cahaya Atas Kad */
         .register-card::before {
             content: '';
             position: absolute;
@@ -85,7 +80,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             box-shadow: var(--neon-glow);
         }
 
-        /* Gaya Logo */
         .logo-container {
             margin-bottom: 20px;
         }
@@ -112,14 +106,13 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             margin-bottom: 30px;
         }
 
-        /* Input Sematan Ikon */
         .input-group {
             position: relative;
             margin-bottom: 18px;
             text-align: left;
         }
 
-        .input-group i {
+        .input-group > i:not(.toggle-password) {
             position: absolute;
             left: 14px;
             top: 50%;
@@ -130,9 +123,25 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             transition: color 0.3s;
         }
 
+        .toggle-password {
+            position: absolute;
+            right: 14px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-muted);
+            cursor: pointer;
+            font-size: 1rem;
+            z-index: 3;
+            transition: color 0.3s;
+        }
+
+        .toggle-password:hover {
+            color: var(--neon-primary);
+        }
+
         input, select { 
             width: 100%; 
-            padding: 12px 12px 12px 42px; 
+            padding: 12px 42px 12px 42px; 
             border: 1px solid rgba(255, 255, 255, 0.1); 
             border-radius: 10px; 
             background: rgba(15, 23, 42, 0.6); 
@@ -141,10 +150,12 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             color: var(--text-main);
             transition: all 0.3s ease;
             font-family: inherit;
-            position: relative;
         }
 
-        /* Pilihan dropdown select */
+        input[name="username"] {
+            padding-right: 12px;
+        }
+
         select {
             cursor: pointer;
             appearance: none;
@@ -154,6 +165,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             background-repeat: no-repeat;
             background-position: right 14px center;
             background-size: 16px;
+            padding-right: 42px;
         }
 
         select option {
@@ -168,12 +180,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             box-shadow: 0 0 12px rgba(0, 242, 254, 0.3);
         }
 
-        input:focus + i, select:focus ~ i {
-            color: var(--neon-secondary);
-            text-shadow: 0 0 8px var(--neon-primary);
-        }
-
-        /* Butang Neon */
         button { 
             width: 100%; 
             padding: 13px; 
@@ -196,11 +202,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             box-shadow: 0 0 20px rgba(0, 242, 254, 0.6), 0 0 40px rgba(0, 242, 254, 0.2);
         }
 
-        button:active {
-            transform: translateY(0);
-        }
-
-        /* Pautan Kembali */
         .back-link { 
             margin-top: 25px; 
             display: inline-flex; 
@@ -237,7 +238,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         
         <div class="input-group">
             <i class="fa-solid fa-lock"></i>
-            <input type="password" name="password" placeholder="Kata Laluan" required>
+            <input type="password" name="password" id="register-password" placeholder="Kata Laluan" required>
+            <i class="fa-solid fa-eye toggle-password" id="toggleRegisterPassword"></i>
         </div>
         
         <div class="input-group">
@@ -258,6 +260,20 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         <i class="fa-solid fa-arrow-left"></i> Kembali ke Log Masuk
     </a>
 </div>
+
+<!-- Skrip JavaScript untuk Kawal Eye On/Off Pendaftaran -->
+<script>
+    const toggleRegPassword = document.querySelector('#toggleRegisterPassword');
+    const regPassword = document.querySelector('#register-password');
+
+    toggleRegPassword.addEventListener('click', function () {
+        const type = regPassword.getAttribute('type') === 'password' ? 'text' : 'password';
+        regPassword.setAttribute('type', type);
+        
+        this.classList.toggle('fa-eye');
+        this.classList.toggle('fa-eye-slash');
+    });
+</script>
 
 </body>
 </html>
