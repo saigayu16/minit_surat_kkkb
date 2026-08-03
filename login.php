@@ -27,9 +27,24 @@ if (isset($_SESSION['user_logged_in']) && $_SESSION['user_logged_in'] === true) 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Log Masuk - Sistem Minit Digital</title>
+    <title>Log Masuk - Sistem Minit Digital (Neon Mode)</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-   <style>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --neon-bg: #05050a;
+            --neon-card: rgba(13, 13, 25, 0.85);
+            --neon-primary: #00f2fe; /* Cyan Terang */
+            --neon-secondary: #4facfe; /* Biru Neon */
+            --neon-glow: 0 0 15px rgba(0, 242, 254, 0.4), 0 0 30px rgba(0, 242, 254, 0.2);
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --border-color: rgba(0, 242, 254, 0.3);
+        }
+
         body { 
             font-family: 'Inter', sans-serif; 
             display: flex; 
@@ -39,9 +54,10 @@ if (isset($_SESSION['user_logged_in']) && $_SESSION['user_logged_in'] === true) 
             margin: 0; 
             position: relative;
             overflow: hidden;
+            background-color: var(--neon-bg);
         }
 
-        /* Lapisan khas untuk imej latar belakang dengan kesan blur */
+        /* Lapisan khas untuk imej latar belakang dengan kesan blur & neon dark overlay */
         body::before {
             content: '';
             position: fixed;
@@ -49,51 +65,169 @@ if (isset($_SESSION['user_logged_in']) && $_SESSION['user_logged_in'] === true) 
             left: 0;
             width: 100%;
             height: 100%;
-            background: linear-gradient(rgba(15, 23, 42, 0.7), rgba(15, 23, 42, 0.7)), url('backgroundkkkb.jpg') no-repeat center center fixed;
+            background: linear-gradient(rgba(5, 5, 10, 0.85), rgba(5, 5, 10, 0.85)), url('backgroundkkkb.jpg') no-repeat center center fixed;
             background-size: cover;
-            filter: blur(8px); /* Ubah nilai 8px ini jika mahu lebih atau kurang kabur */
-            transform: scale(1.1); /* Mengelakkan kesan putih di tepi akibat blur */
-            z-index: -1; /* Memastikan latar belakang berada di lapisan paling bawah */
+            filter: blur(8px); 
+            transform: scale(1.1); 
+            z-index: -1; 
         }
 
+        /* Kad Gaya Neon Glassmorphism */
         .login-card { 
-            background: rgba(255, 255, 255, 0.95); 
-            padding: 40px; 
-            border-radius: 16px; 
-            box-shadow: 0 10px 25px rgba(0,0,0,0.3); 
+            background: var(--neon-card); 
+            backdrop-filter: blur(16px); 
+            padding: 40px 35px; 
+            border-radius: 20px; 
+            box-shadow: 0 0 30px rgba(0, 0, 0, 0.8), inset 0 0 15px rgba(0, 242, 254, 0.05); 
             width: 380px; 
-            text-align: center; 
+            box-sizing: border-box;
+            border: 1px solid var(--border-color); 
+            text-align: center;
+            position: relative;
+        }
+
+        /* Kesan Garisan Cahaya Atas Kad */
+        .login-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 20%;
+            right: 20%;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, var(--neon-primary), transparent);
+            box-shadow: var(--neon-glow);
         }
         
         /* Gaya Logo */
-        .logo-container { margin-bottom: 20px; }
-        .logo-kolej { height: 100px; width: auto; object-fit: contain; }
+        .logo-container { 
+            margin-bottom: 20px; 
+        }
+        
+        .logo-kolej { 
+            height: 90px; 
+            width: auto; 
+            object-fit: contain; 
+            filter: drop-shadow(0 0 8px rgba(0, 242, 254, 0.4));
+        }
 
-        .input-group { position: relative; margin-bottom: 20px; text-align: left; }
-        .input-group i { position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: #64748b; }
-        input, select { width: 100%; padding: 12px 12px 12px 40px; border: 1px solid #cbd5e1; border-radius: 8px; box-sizing: border-box; appearance: none; }
+        h2 { 
+            color: var(--text-main); 
+            margin: 0 0 25px 0; 
+            font-weight: 700;
+            font-size: 1.6rem;
+            letter-spacing: -0.5px;
+            text-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
+        }
+
+        .input-group { 
+            position: relative; 
+            margin-bottom: 18px; 
+            text-align: left; 
+        }
+
+        .input-group i { 
+            position: absolute; 
+            left: 14px; 
+            top: 50%; 
+            transform: translateY(-50%); 
+            color: var(--neon-primary); 
+            font-size: 1rem;
+            z-index: 2;
+            transition: color 0.3s;
+        }
+
+        input, select { 
+            width: 100%; 
+            padding: 12px 12px 12px 42px; 
+            border: 1px solid rgba(255, 255, 255, 0.1); 
+            border-radius: 10px; 
+            background: rgba(15, 23, 42, 0.6); 
+            box-sizing: border-box; 
+            font-size: 0.95rem;
+            color: var(--text-main);
+            transition: all 0.3s ease;
+            font-family: inherit;
+            appearance: none; 
+            -webkit-appearance: none;
+            -moz-appearance: none;
+        }
+
+        select {
+            cursor: pointer;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%2300f2fe'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 14px center;
+            background-size: 16px;
+        }
+
+        select option {
+            background-color: #0f172a;
+            color: var(--text-main);
+        }
+
+        input:focus, select:focus {
+            outline: none;
+            border-color: var(--neon-primary);
+            background: rgba(15, 23, 42, 0.9);
+            box-shadow: 0 0 12px rgba(0, 242, 254, 0.3);
+        }
+
+        input:focus + i, select:focus ~ i {
+            color: var(--neon-secondary);
+            text-shadow: 0 0 8px var(--neon-primary);
+        }
         
-        button { width: 100%; padding: 12px; background: #2563eb; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; margin-top: 10px; }
-        button:hover { background: #1d4ed8; }
+        /* Butang Utama Neon */
+        button { 
+            width: 100%; 
+            padding: 13px; 
+            background: linear-gradient(135deg, var(--neon-secondary), var(--neon-primary)); 
+            color: #05050a; 
+            border: none; 
+            border-radius: 10px; 
+            cursor: pointer; 
+            font-weight: 700; 
+            font-size: 0.95rem;
+            margin-top: 10px; 
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0, 242, 254, 0.3);
+            letter-spacing: 0.5px;
+        }
+
+        button:hover { 
+            background: linear-gradient(135deg, var(--neon-primary), var(--neon-secondary)); 
+            transform: translateY(-2px);
+            box-shadow: 0 0 20px rgba(0, 242, 254, 0.6), 0 0 40px rgba(0, 242, 254, 0.2);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
         
-        /* Gaya Butang Register */
+        /* Gaya Butang Register (Hijau/Cyan Neon Alternatif) */
         .btn-register {
             display: block;
             width: 100%;
-            padding: 12px;
-            background: #10b981;
-            color: white;
+            padding: 13px;
+            background: transparent;
+            color: var(--neon-primary);
             text-align: center;
             text-decoration: none;
-            border-radius: 8px;
-            margin-top: 10px;
-            font-weight: bold;
+            border: 1px solid var(--neon-primary);
+            border-radius: 10px;
+            margin-top: 12px;
+            font-weight: 600;
+            font-size: 0.95rem;
             box-sizing: border-box;
+            transition: all 0.3s ease;
         }
-        .btn-register:hover { background: #059669; }
-        
-        h2 { color: #0f172a; margin-bottom: 25px; }
-</style>
+
+        .btn-register:hover { 
+            background: rgba(0, 242, 254, 0.1); 
+            box-shadow: 0 0 12px rgba(0, 242, 254, 0.3);
+            transform: translateY(-1px);
+        }
+    </style>
 </head>
 <body>
     <div class="login-card">
@@ -113,7 +247,7 @@ if (isset($_SESSION['user_logged_in']) && $_SESSION['user_logged_in'] === true) 
             </div>
             <div class="input-group">
                 <select name="role" required>
-                    <option value="" disabled selected>Pilih Peranan</option>
+                    <option value="" disabled selected hidden>Pilih Peranan...</option>
                     <option value="admin">Admin</option>
                     <option value="pengarah">Pengarah</option>
                     <option value="tpp">Timbalan Pengarah Pengurusan</option>
