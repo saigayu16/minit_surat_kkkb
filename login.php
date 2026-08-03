@@ -37,8 +37,8 @@ if (isset($_SESSION['user_logged_in']) && $_SESSION['user_logged_in'] === true) 
         :root {
             --neon-bg: #05050a;
             --neon-card: rgba(13, 13, 25, 0.85);
-            --neon-primary: #00f2fe; /* Cyan Terang */
-            --neon-secondary: #4facfe; /* Biru Neon */
+            --neon-primary: #00f2fe; 
+            --neon-secondary: #4facfe; 
             --neon-glow: 0 0 15px rgba(0, 242, 254, 0.4), 0 0 30px rgba(0, 242, 254, 0.2);
             --text-main: #f8fafc;
             --text-muted: #94a3b8;
@@ -57,7 +57,6 @@ if (isset($_SESSION['user_logged_in']) && $_SESSION['user_logged_in'] === true) 
             background-color: var(--neon-bg);
         }
 
-        /* Lapisan khas untuk imej latar belakang dengan kesan blur & neon dark overlay */
         body::before {
             content: '';
             position: fixed;
@@ -72,7 +71,6 @@ if (isset($_SESSION['user_logged_in']) && $_SESSION['user_logged_in'] === true) 
             z-index: -1; 
         }
 
-        /* Kad Gaya Neon Glassmorphism */
         .login-card { 
             background: var(--neon-card); 
             backdrop-filter: blur(16px); 
@@ -86,7 +84,6 @@ if (isset($_SESSION['user_logged_in']) && $_SESSION['user_logged_in'] === true) 
             position: relative;
         }
 
-        /* Kesan Garisan Cahaya Atas Kad */
         .login-card::before {
             content: '';
             position: absolute;
@@ -98,7 +95,6 @@ if (isset($_SESSION['user_logged_in']) && $_SESSION['user_logged_in'] === true) 
             box-shadow: var(--neon-glow);
         }
         
-        /* Gaya Logo */
         .logo-container { 
             margin-bottom: 20px; 
         }
@@ -125,7 +121,8 @@ if (isset($_SESSION['user_logged_in']) && $_SESSION['user_logged_in'] === true) 
             text-align: left; 
         }
 
-        .input-group i { 
+        /* Ikon kiri di dalam input */
+        .input-group > i:not(.toggle-password) { 
             position: absolute; 
             left: 14px; 
             top: 50%; 
@@ -136,9 +133,26 @@ if (isset($_SESSION['user_logged_in']) && $_SESSION['user_logged_in'] === true) 
             transition: color 0.3s;
         }
 
+        /* Ikon mata untuk togol kata laluan di sebelah kanan */
+        .toggle-password {
+            position: absolute;
+            right: 14px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-muted);
+            cursor: pointer;
+            font-size: 1rem;
+            z-index: 3;
+            transition: color 0.3s;
+        }
+
+        .toggle-password:hover {
+            color: var(--neon-primary);
+        }
+
         input, select { 
             width: 100%; 
-            padding: 12px 12px 12px 42px; 
+            padding: 12px 42px 12px 42px; 
             border: 1px solid rgba(255, 255, 255, 0.1); 
             border-radius: 10px; 
             background: rgba(15, 23, 42, 0.6); 
@@ -152,12 +166,18 @@ if (isset($_SESSION['user_logged_in']) && $_SESSION['user_logged_in'] === true) 
             -moz-appearance: none;
         }
 
+        /* Input biasa tanpa ikon kanan (seperti nama pengguna) saiz padding kanan berbeza */
+        input[name="username"] {
+            padding-right: 12px;
+        }
+
         select {
             cursor: pointer;
             background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%2300f2fe'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'/%3E%3C/svg%3E");
             background-repeat: no-repeat;
             background-position: right 14px center;
             background-size: 16px;
+            padding-right: 42px;
         }
 
         select option {
@@ -172,12 +192,11 @@ if (isset($_SESSION['user_logged_in']) && $_SESSION['user_logged_in'] === true) 
             box-shadow: 0 0 12px rgba(0, 242, 254, 0.3);
         }
 
-        input:focus + i, select:focus ~ i {
+        input:focus ~ i {
             color: var(--neon-secondary);
             text-shadow: 0 0 8px var(--neon-primary);
         }
         
-        /* Butang Utama Neon */
         button { 
             width: 100%; 
             padding: 13px; 
@@ -200,11 +219,6 @@ if (isset($_SESSION['user_logged_in']) && $_SESSION['user_logged_in'] === true) 
             box-shadow: 0 0 20px rgba(0, 242, 254, 0.6), 0 0 40px rgba(0, 242, 254, 0.2);
         }
 
-        button:active {
-            transform: translateY(0);
-        }
-        
-        /* Gaya Butang Register (Hijau/Cyan Neon Alternatif) */
         .btn-register {
             display: block;
             width: 100%;
@@ -238,14 +252,18 @@ if (isset($_SESSION['user_logged_in']) && $_SESSION['user_logged_in'] === true) 
         <h2>Log Masuk</h2>
         <form action="auth.php" method="POST">
             <div class="input-group">
-                <input type="text" name="username" placeholder="Nama Pengguna" required>
                 <i class="fa-solid fa-user"></i>
+                <input type="text" name="username" placeholder="Nama Pengguna" required>
             </div>
+            
             <div class="input-group">
-                <input type="password" name="password" placeholder="Kata Laluan" required>
                 <i class="fa-solid fa-lock"></i>
+                <input type="password" name="password" id="login-password" placeholder="Kata Laluan" required>
+                <i class="fa-solid fa-eye toggle-password" id="toggleLoginPassword"></i>
             </div>
+
             <div class="input-group">
+                <i class="fa-solid fa-user-shield"></i>
                 <select name="role" required>
                     <option value="" disabled selected hidden>Pilih Peranan...</option>
                     <option value="admin">Admin</option>
@@ -253,13 +271,27 @@ if (isset($_SESSION['user_logged_in']) && $_SESSION['user_logged_in'] === true) 
                     <option value="tpp">Timbalan Pengarah Pengurusan</option>
                     <option value="tpa">Timbalan Pengarah Akademik</option>
                 </select>
-                <i class="fa-solid fa-user-shield"></i>
             </div>
             
             <button type="submit">Masuk Ke Sistem</button>
-            
             <a href="register.php" class="btn-register">Daftar Akaun Baru</a>
         </form>
     </div>
+
+    <!-- Skrip JavaScript untuk Kawal Eye On/Off -->
+    <script>
+        const togglePassword = document.querySelector('#toggleLoginPassword');
+        const password = document.querySelector('#login-password');
+
+        togglePassword.addEventListener('click', function () {
+            // Tukar jenis input daripada password kepada text
+            const type = password.getAttribute('type') === 'password' ? 'text' : 'password';
+            password.setAttribute('type', type);
+            
+            // Tukar ikon mata (fa-eye <-> fa-eye-slash)
+            this.classList.toggle('fa-eye');
+            this.classList.toggle('fa-eye-slash');
+        });
+    </script>
 </body>
 </html>
