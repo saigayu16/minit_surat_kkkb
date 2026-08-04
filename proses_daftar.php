@@ -49,16 +49,15 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         curl_setopt($ch_drive, CURLOPT_HTTPHEADER, ['Content-Type: application/json']);
         $drive_response = trim(curl_exec($ch_drive));
         $http_code_drive = curl_getinfo($ch_drive, CURLINFO_HTTP_CODE);
-        curl_close($ch_drive);
-
+        
         if ($http_code_drive == 200 && strpos($drive_response, 'ERROR') === false) {
             $drive_file_id = $drive_response;
         }
     }
 
-    // 4. Simpan ke Database Neon (PostgreSQL) menggunakan $pdo
+    // 4. Simpan ke Database Neon (PostgreSQL) menggunakan RETURNING id untuk elak isu sequence
     $sql = "INSERT INTO minit_surat (no_rujukan, tarikh_terima, daripada, perkara, kolej, target_role, status, drive_file_id, didaftarkan_oleh) 
-            VALUES (?, ?, ?, ?, ?, ?, 'BARU', ?, ?)";
+            VALUES (?, ?, ?, ?, ?, ?, 'BARU', ?, ?) RETURNING id";
     $stmt = $pdo->prepare($sql);
     
     $success = $stmt->execute([
@@ -73,7 +72,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     ]);
     
     if ($success) {
-        $id_surat_baru = $pdo->lastInsertId(); 
+        $row_inserted = $stmt->fetch(PDO::FETCH_ASSOC);
+        $id_surat_baru = $row_inserted['id']; 
 
         // 5. Tentukan Halaman Dashboard Mengikut Logik Anda
         $protocol = isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? "https" : "http";
@@ -123,9 +123,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($data));
         curl_setopt($ch, CURLOPT_HTTPHEADER, ['api-key: ' . $api_key, 'Content-Type: application/json']);
         curl_exec($ch);
-        curl_close($ch);
 
-        echo "<script>alert('Surat telah didaftarkan dan e-mel berjaya dihantar! (Drive ID: $drive_file_id)'); window.location='homeadmin.php';</script>";
+        echo "<script>alert('Surat telah didaftarkan dan e-mel berjaya dihantar!'); window.location='homeadmin.php';</script>";
     } else {
         $errorInfo = $stmt->errorInfo();
         echo "Ralat Database: " . $errorInfo[2];
