@@ -42,7 +42,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         $base64_file = base64_encode(file_get_contents($_FILES['fail_surat']['tmp_name']));
         $payload = json_encode(['fileData' => $base64_file, 'mimeType' => 'application/pdf', 'fileName' => $file_name]);
         
-        $ch_drive = curl_init("https://script.google.com/macros/s/AKfycbyuFK5btjgfRGv_q9qWzx4Z7gZQ4onbkaALbvZTzDuVP5WDMi1lwp6IR-TdxFpvL8If/exec");
+        $ch_drive = curl_init("https://script.google.com/macros/s/AKfycbz-_qw0T_-F_KJG170r53NZXGcUeAd_HvuyYM33ImvgK7TYgst1WGVQClCsNe8QwhDGTQ/exec");
         curl_setopt($ch_drive, CURLOPT_POSTFIELDS, $payload);
         curl_setopt($ch_drive, CURLOPT_RETURNTRANSFER, true);
         curl_setopt($ch_drive, CURLOPT_FOLLOWLOCATION, true);
@@ -100,7 +100,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         $api_key = getenv('BREVO_API_KEY');
         
         $data = [
-            "sender" => ["email" => "kkkepalabatas@kkkb.edu.my", "name" => "Sistem Minit Digital"],
+            "sender" => ["email" => "kkkepalabatasminit2026@gmail.com", "name" => "Sistem Minit Digital"],
             "to" => [["email" => $email_penerima]],
             "subject" => "Notifikasi: Surat Baharu - " . $no_rujukan,
             "htmlContent" => "
