@@ -40,7 +40,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         $api_key = getenv('BREVO_API_KEY');
         
         $data = [
-            "sender" => ["email" => "saigayu1605@gmail.com", "name" => "Sistem Minit Digital"],
+            "sender" => ["email" => "kkkepalabatas@kkkb.edu.my", "name" => "Sistem Minit Digital"],
             "to" => [["email" => $email_staf]],
             "subject" => "Notifikasi: Dokumen Asal dan Minit Surat Baharu",
             "htmlContent" => "
