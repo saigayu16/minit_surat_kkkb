@@ -105,16 +105,19 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             "to" => [["email" => $email_penerima]],
             "subject" => "Notifikasi Surat: " . $perkara,
             "htmlContent" => "
-                <p>Assalamualaikum wbt,</p>
-                <p>Terdapat surat baharu dengan no rujukan <b>{$no_rujukan}</b> untuk tindakan anda.</p>
+                Assalamualaikum Dan Selamat Sejahtera<br><br>
+                Merujuk Perkara Di Atas Adalah Untuk Tindakan Dan Makluman Pihak Tuan/Puan <b>{$no_rujukan}</b>.</p>
                 <p><b>Perkara:</b> {$perkara}</p>
+                <p>Sila klik butang di bawah untuk masuk ke dashboard anda dan menyemak surat:</p>
+                Sekian Terima Kasih<br><br>
+                <b>\"MALAYSIA MADANI\"</b><br><br>
+                <b>\"BERKHIDMAT UNTUK NEGARA\"</b>
                 <p>Sila klik butang di bawah untuk masuk ke dashboard anda dan menyemak surat:</p>
                 <p><a href='{$link_sistem}' style='background: #f57c00; color: white; padding: 12px 25px; text-decoration: none; border-radius: 5px; display: inline-block; font-weight: bold;'>Buka Dashboard Sistem</a></p>
                 <p>Atau salin pautan ini ke pelayar anda: <br><a href='{$link_sistem}'>{$link_sistem}</a></p>
-                <p>Sekian, terima kasih.</p>
             "
         ];
-
+        
         if ($base64_file && $file_name) {
             $data["attachment"] = [["content" => $base64_file, "name" => $file_name]];
         }
