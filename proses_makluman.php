@@ -54,7 +54,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         $data = [
             "sender" => ["email" => "kkkepalabatasminit2026@gmail.com", "name" => "Sistem Minit Digital"],
             "to" => [["email" => $email_staf]],
-            "subject" => $perkara, // Subjek emel mengambil terus teks 'perkara' yang ditaip admin
+            "subject" => "Notifikasi Surat: " . $perkara, // Subjek emel mengambil terus teks 'perkara' yang ditaip admin
             "htmlContent" => "
                 <p>Assalamualaikum Dan Selamat Sejahtera</p>
                 <br>
