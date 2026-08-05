@@ -54,7 +54,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         $data = [
             "sender" => ["email" => "kkkepalabatasminit2026@gmail.com", "name" => "Sistem Minit Digital"],
             "to" => [["email" => $email_staf]],
-            "subject" => "Notifikasi: " . $perkara_surat, // <--- Subjek dinamik mengikut nilai 'perkara'
+            "subject" => "Notifikasi Surat: " . $perkara, // <--- Subjek dinamik mengikut nilai 'perkara'
             "htmlContent" => "
                 <p>Assalamualaikum wbt, <b>" . htmlspecialchars($staf['nama']) . "</b>,</p>
                 <p>Sila semak dokumen asal surat serta dokumen minit yang telah dilampirkan bersama e-mel ini untuk tindakan selanjutnya.</p>
