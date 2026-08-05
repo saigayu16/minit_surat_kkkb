@@ -52,16 +52,16 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         $api_key = getenv('BREVO_API_KEY');
         
         $data = [
-            "sender" => ["email" => "kkkepalabatasminit2026@gmail.com", "name" => "Sistem Minit Digital"],
-            "to" => [["email" => $email_staf]],
-            "subject" => "Notifikasi Surat: " . $perkara, // <--- Subjek dinamik mengikut nilai 'perkara'
-            "htmlContent" => "
-                <p>Assalamualaikum wbt, <b>" . htmlspecialchars($staf['nama']) . "</b>,</p>
-                <p>Sila semak dokumen asal surat serta dokumen minit yang telah dilampirkan bersama e-mel ini untuk tindakan selanjutnya.</p>
-                <p><b>Perkara:</b> " . htmlspecialchars($perkara_surat) . "</p>
-                <p>Sekian, terima kasih.</p>
-            "
-        ];
+    "sender" => ["email" => "kkkepalabatasminit2026@gmail.com", "name" => "Sistem Minit Digital"],
+    "to" => [["email" => $email_staf]],
+    "subject" => "Notifikasi Surat: " . $perkara, // Mengambil nilai tajuk/perkara yang ditaip admin
+    "htmlContent" => "
+        <p>Assalamualaikum wbt, <b>" . htmlspecialchars($staf['nama']) . "</b>,</p>
+        <p>Sila semak dokumen asal surat serta dokumen minit yang telah dilampirkan bersama e-mel ini untuk tindakan selanjutnya.</p>
+        <p><b>Perkara:</b> " . htmlspecialchars($perkara) . "</p>
+        <p>Sekian, terima kasih.</p>
+    "
+];
  
         // Masukkan lampiran hanya jika fail wujud
         if (!empty($attachments)) {
