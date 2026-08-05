@@ -4,17 +4,16 @@ include('db.php'); // Menjangkakan sambungan menggunakan $pdo
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $email_staf = $_POST['email'] ?? '';
     $nama_staf  = $_POST['nama_staf'] ?? '';
-    $id_surat   = $_POST['id_surat'] ?? $_GET['id'] ?? null; // Pastikan ID surat diterima untuk Semak Perkara
-
-    // Ambil nilai 'perkara' daripada database berdasarkan id surat
-    $perkara = "Notifikasi Dokumen Asal dan Minit Surat Baharu"; // Nilai default jika tiada ID
-    if ($id_surat) {
-        $stmt_perkara = $pdo->prepare("SELECT perkara FROM minit_surat WHERE id = ? LIMIT 1");
-        $stmt_perkara->execute([$id_surat]);
-        $row_perkara = $stmt_perkara->fetch(PDO::FETCH_ASSOC);
-        if ($row_perkara && !empty($row_perkara['perkara'])) {
-            $perkara = $row_perkara['perkara'];
-        }
+ 
+    // Auto-baca teks 'perkara' daripada surat yang PALING TERKINI (baru sahaja didaftarkan oleh admin)
+    $perkara = "Notifikasi Dokumen Asal dan Minit Surat Baharu"; // Nilai default jika tiada rekod
+    
+    $stmt_perkara = $pdo->prepare("SELECT perkara FROM minit_surat ORDER BY id DESC LIMIT 1");
+    $stmt_perkara->execute();
+    $row_perkara = $stmt_perkara->fetch(PDO::FETCH_ASSOC);
+    
+    if ($row_perkara && !empty($row_perkara['perkara'])) {
+        $perkara = $row_perkara['perkara']; // Paparkan tajuk sebenar yang ditaip admin
     }
  
     // 1. Semak staf dalam database menggunakan PDO prepared statement
@@ -54,17 +53,14 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         $data = [
             "sender" => ["email" => "kkkepalabatasminit2026@gmail.com", "name" => "Sistem Minit Digital"],
             "to" => [["email" => $email_staf]],
-            "subject" => "Notifikasi Surat: " . $perkara, // Subjek emel mengambil terus teks 'perkara' yang ditaip admin
+            "subject" => $perkara, // Subjek emel mengambil terus teks perkara terkini
             "htmlContent" => "
-                <p>Assalamualaikum Dan Selamat Sejahtera</p>
-                <br>
-                <p>Merujuk Perkara Di Atas Adalah Untuk Tindakan Dan Makluman Pihak Tuan/Puan.</p>
-                <br>
-                <p>Sekian Terima Kasih</p>
-                <br>
-                <p><b>\"MALAYSIA MADANI\"</b></p>
-                <br>
-                <p><b>\"BERKHIDMAT UNTUK NEGARA\"</b></p>
+                Assalamualaikum Dan Selamat Sejahtera<br><br>
+                Merujuk Perkara Di Atas Adalah Untuk Tindakan Dan Makluman Pihak Tuan/Puan.<br><br>
+                <b>Perkara:</b> {$perkara}<br><br>
+                Sekian Terima Kasih<br><br>
+                <b>\"MALAYSIA MADANI\"</b><br><br>
+                <b>\"BERKHIDMAT UNTUK NEGARA\"</b>
             "
         ];
  
