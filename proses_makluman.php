@@ -1,19 +1,19 @@
 <?php
 include('db.php'); // Menjangkakan sambungan menggunakan $pdo
-
+ 
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $email_staf = $_POST['email'] ?? '';
     $nama_staf  = $_POST['nama_staf'] ?? '';
     $id_surat   = $_POST['id_surat'] ?? $_GET['id'] ?? null; // Pastikan ID surat diterima untuk Semak Perkara
 
-    // Ambil nilai 'perkara' daripada database berdasarkan id surat (jika ada)
-    $perkara_surat = "Dokumen Asal dan Minit Surat Baharu"; // Nilai default jika tiada ID
+    // Ambil nilai 'perkara' daripada database berdasarkan id surat
+    $perkara = "Notifikasi Dokumen Asal dan Minit Surat Baharu"; // Nilai default jika tiada ID
     if ($id_surat) {
         $stmt_perkara = $pdo->prepare("SELECT perkara FROM minit_surat WHERE id = ? LIMIT 1");
         $stmt_perkara->execute([$id_surat]);
         $row_perkara = $stmt_perkara->fetch(PDO::FETCH_ASSOC);
         if ($row_perkara && !empty($row_perkara['perkara'])) {
-            $perkara_surat = $row_perkara['perkara'];
+            $perkara = $row_perkara['perkara'];
         }
     }
  
@@ -52,16 +52,21 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         $api_key = getenv('BREVO_API_KEY');
         
         $data = [
-    "sender" => ["email" => "kkkepalabatasminit2026@gmail.com", "name" => "Sistem Minit Digital"],
-    "to" => [["email" => $email_staf]],
-    "subject" => "Notifikasi Surat: " . $perkara, // Mengambil nilai tajuk/perkara yang ditaip admin
-    "htmlContent" => "
-        <p>Assalamualaikum wbt, <b>" . htmlspecialchars($staf['nama']) . "</b>,</p>
-        <p>Sila semak dokumen asal surat serta dokumen minit yang telah dilampirkan bersama e-mel ini untuk tindakan selanjutnya.</p>
-        <p><b>Perkara:</b> " . htmlspecialchars($perkara) . "</p>
-        <p>Sekian, terima kasih.</p>
-    "
-];
+            "sender" => ["email" => "kkkepalabatasminit2026@gmail.com", "name" => "Sistem Minit Digital"],
+            "to" => [["email" => $email_staf]],
+            "subject" => $perkara, // Subjek emel mengambil terus teks 'perkara' yang ditaip admin
+            "htmlContent" => "
+                <p>Assalamualaikum Dan Selamat Sejahtera</p>
+                <br>
+                <p>Merujuk Perkara Di Atas Adalah Untuk Tindakan Dan Makluman Pihak Tuan/Puan.</p>
+                <br>
+                <p>Sekian Terima Kasih</p>
+                <br>
+                <p><b>\"MALAYSIA MADANI\"</b></p>
+                <br>
+                <p><b>\"BERKHIDMAT UNTUK NEGARA\"</b></p>
+            "
+        ];
  
         // Masukkan lampiran hanya jika fail wujud
         if (!empty($attachments)) {
