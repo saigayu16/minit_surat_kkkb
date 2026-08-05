@@ -11,10 +11,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     }
 
     // 1. Ambil input dengan selamat
-    $no_rujukan      = $_POST['no_rujukan'] ?? '';
+    $no_rujukan     = $_POST['no_rujukan'] ?? '';
     $tarikh_terima   = $_POST['tarikh_terima'] ?? '';
     $daripada        = $_POST['daripada'] ?? '';
-    $perkara         = $_POST['perkara'] ?? '';
+    $perkara         = $_POST['perkara'] ?? ''; // <--- Data perkara yang ingin dikongsi ke subjek e-mel
     $kolej           = $_POST['kolej'] ?? '';
     $target_role     = $_POST['target_role'] ?? '';
     
@@ -94,6 +94,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             die("Ralat: Kategori peranan ('$target_role') tidak sah.");
         }
 
+        // Sertakan parameter 'perkara' di dalam URL supaya boleh dibaca oleh sistem penerima jika perlu
         $link_sistem = $protocol . "://$host/$halaman_tujuan?id=" . $id_surat_baru; 
 
         // 6. Integrasi API Brevo
@@ -106,6 +107,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             "htmlContent" => "
                 <p>Assalamualaikum wbt,</p>
                 <p>Terdapat surat baharu dengan no rujukan <b>{$no_rujukan}</b> untuk tindakan anda.</p>
+                <p><b>Perkara:</b> {$perkara}</p>
                 <p>Sila klik butang di bawah untuk masuk ke dashboard anda dan menyemak surat:</p>
                 <p><a href='{$link_sistem}' style='background: #f57c00; color: white; padding: 12px 25px; text-decoration: none; border-radius: 5px; display: inline-block; font-weight: bold;'>Buka Dashboard Sistem</a></p>
                 <p>Atau salin pautan ini ke pelayar anda: <br><a href='{$link_sistem}'>{$link_sistem}</a></p>
