@@ -103,7 +103,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         $data = [
             "sender" => ["email" => "kkkepalabatasminit2026@gmail.com", "name" => "Sistem Minit Digital"],
             "to" => [["email" => $email_penerima]],
-            "subject" => "Notifikasi: Surat Baharu - " . $no_rujukan,
+            "subject" => "Notifikasi Surat: " . $perkara,
             "htmlContent" => "
                 <p>Assalamualaikum wbt,</p>
                 <p>Terdapat surat baharu dengan no rujukan <b>{$no_rujukan}</b> untuk tindakan anda.</p>
