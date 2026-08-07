@@ -2,25 +2,30 @@
 include('db.php'); 
 $id = $_GET['id'] ?? ''; 
 
-// Proses tambah staf baharu jika borang dihantar
-$mesej_tambah = '';
+// Proses tambah staf baharu
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['tambah_staf_baru'])) {
     $nama_baru = trim($_POST['nama_baru'] ?? '');
     $email_baru = trim($_POST['email_baru'] ?? '');
 
     if (!empty($nama_baru) && !empty($email_baru)) {
         try {
+            // Semak jika e-mel sudah wujud
             $stmt_check = $pdo->prepare("SELECT id FROM staff WHERE email = ?");
             $stmt_check->execute([$email_baru]);
+            
             if ($stmt_check->rowCount() > 0) {
-                $mesej_tambah = "<script>alert('E-mel staf ini sudah wujud dalam pangkalan data!');</script>";
+                echo "<script>alert('Ralat: E-mel staf ini sudah wujud dalam pangkalan data!'); window.location.href='?id=" . htmlspecialchars($id) . "';</script>";
+                exit;
             } else {
+                // Masukkan ke dalam database
                 $stmt_insert = $pdo->prepare("INSERT INTO staff (nama, email) VALUES (?, ?)");
                 $stmt_insert->execute([$nama_baru, $email_baru]);
-                $mesej_tambah = "<script>alert('Staf baru berjaya didaftarkan dan dimasukkan ke dalam database!'); window.location.href='?id=" . $id . "';</script>";
+                
+                echo "<script>alert('Staf baru berjaya disimpan dalam database!'); window.location.href='?id=" . htmlspecialchars($id) . "';</script>";
+                exit;
             }
         } catch (PDOException $e) {
-            $mesej_tambah = "<script>alert('Ralat: " . $e->getMessage() . "');</script>";
+            echo "<script>alert('Ralat Database: " . addslashes($e->getMessage()) . "');</script>";
         }
     }
 }
@@ -139,8 +144,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['tambah_staf_baru'])) 
     </style>
 </head>
 <body>
-
-    <?= $mesej_tambah ?>
 
     <div class="box">
         <div class="pin"></div>
