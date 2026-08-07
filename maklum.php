@@ -1,6 +1,29 @@
 <?php 
 include('db.php'); 
 $id = $_GET['id'] ?? ''; 
+
+// Proses tambah staf baharu jika borang dihantar
+$mesej_tambah = '';
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['tambah_staf_baru'])) {
+    $nama_baru = trim($_POST['nama_baru'] ?? '');
+    $email_baru = trim($_POST['email_baru'] ?? '');
+
+    if (!empty($nama_baru) && !empty($email_baru)) {
+        try {
+            $stmt_check = $pdo->prepare("SELECT id FROM staff WHERE email = ?");
+            $stmt_check->execute([$email_baru]);
+            if ($stmt_check->rowCount() > 0) {
+                $mesej_tambah = "<script>alert('E-mel staf ini sudah wujud dalam pangkalan data!');</script>";
+            } else {
+                $stmt_insert = $pdo->prepare("INSERT INTO staff (nama, email) VALUES (?, ?)");
+                $stmt_insert->execute([$nama_baru, $email_baru]);
+                $mesej_tambah = "<script>alert('Staf baru berjaya didaftarkan dan dimasukkan ke dalam database!'); window.location.href='?id=" . $id . "';</script>";
+            }
+        } catch (PDOException $e) {
+            $mesej_tambah = "<script>alert('Ralat: " . $e->getMessage() . "');</script>";
+        }
+    }
+}
 ?>
 <!DOCTYPE html>
 <html lang="ms">
@@ -20,7 +43,7 @@ $id = $_GET['id'] ?? '';
             min-height: 100vh; 
             margin: 0; 
             position: relative;
-            overflow: hidden;
+            overflow-x: hidden;
         }
 
         body::before {
@@ -42,47 +65,65 @@ $id = $_GET['id'] ?? '';
 
         .box { 
             background: #fff9c4; 
-            padding: 40px; 
+            padding: 30px 40px; 
             border-radius: 2px 20px 2px 20px; 
             width: 100%; 
-            max-width: 400px; 
+            max-width: 420px; 
             box-shadow: 15px 15px 30px rgba(0,0,0,0.15); 
             position: relative;
-            transform: rotate(-2deg); 
+            transform: rotate(-1deg); 
             transition: transform 0.3s;
+            margin: 20px 0;
         }
 
-        .box:hover { transform: rotate(0deg) scale(1.02); }
+        .box:hover { transform: rotate(0deg) scale(1.01); }
 
-        h3 { margin: 0 0 20px 0; color: #5d4037; text-align: center; font-weight: 700; }
+        h3 { margin: 0 0 15px 0; color: #5d4037; text-align: center; font-weight: 700; }
         
-        .form-group { margin-bottom: 15px; }
-        label { display: block; margin-bottom: 5px; color: #795548; font-size: 0.9rem; font-weight: 600; }
+        .form-group { margin-bottom: 12px; }
+        label { display: block; margin-bottom: 4px; color: #795548; font-size: 0.85rem; font-weight: 600; }
         
         input, select { 
             width: 100%; 
-            padding: 12px; 
+            padding: 10px; 
             border: 2px dashed #fbc02d; 
             border-radius: 5px; 
             background: rgba(255,255,255,0.4);
             box-sizing: border-box; 
             font-family: inherit;
+            font-size: 0.9rem;
         }
 
         button { 
             width: 100%; 
-            padding: 12px; 
+            padding: 11px; 
             background: #f57c00; 
             color: white; 
             border: none; 
             border-radius: 50px; 
             font-weight: 600; 
             cursor: pointer; 
-            margin-top: 15px; 
+            margin-top: 10px; 
             transition: 0.3s;
             box-shadow: 0 4px 6px rgba(0,0,0,0.1);
         }
-        button:hover { background: #e65100; transform: scale(1.03); }
+        button:hover { background: #e65100; transform: scale(1.02); }
+
+        .btn-secondary {
+            background: #795548;
+            font-size: 0.85rem;
+            padding: 8px;
+            margin-top: 5px;
+        }
+        .btn-secondary:hover { background: #5d4037; }
+
+        .toggle-section {
+            background: rgba(255, 243, 224, 0.6);
+            border: 1px dashed #ffa726;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+        }
 
         .pin {
             width: 25px;
@@ -99,10 +140,34 @@ $id = $_GET['id'] ?? '';
 </head>
 <body>
 
+    <?= $mesej_tambah ?>
+
     <div class="box">
         <div class="pin"></div>
         <h3><i class="fa-solid fa-note-sticky"></i> Nota Makluman</h3>
         
+        <!-- Bahagian Optional: Daftar Staf Baru -->
+        <div class="toggle-section">
+            <details>
+                <summary style="cursor: pointer; color: #d84315; font-weight: 600; font-size: 0.9rem;">
+                    <i class="fa-solid fa-user-plus"></i> Staf tiada dalam senarai? Klik sini untuk daftar baru
+                </summary>
+                <form method="POST" style="margin-top: 10px;">
+                    <input type="hidden" name="tambah_staf_baru" value="1">
+                    <div class="form-group" style="margin-bottom: 8px;">
+                        <label>Nama Staf Baru:</label>
+                        <input type="text" name="nama_baru" placeholder="Masukkan nama penuh" required>
+                    </div>
+                    <div class="form-group" style="margin-bottom: 8px;">
+                        <label>E-mel Staf Baru:</label>
+                        <input type="email" name="email_baru" placeholder="Masukkan e-mel" required>
+                    </div>
+                    <button type="submit" class="btn-secondary">Simpan Staf Baru</button>
+                </form>
+            </details>
+        </div>
+
+        <!-- Borang Utama Makluman -->
         <form action="proses_makluman.php" method="POST" enctype="multipart/form-data">
             <input type="hidden" name="surat_id" value="<?= htmlspecialchars($id) ?>">
             
@@ -112,8 +177,7 @@ $id = $_GET['id'] ?? '';
                     <option value="">-- Sila Pilih Nama Staf --</option>
                     <?php
                     try {
-                        // Menggunakan $pdo mengikut konfigurasi fail db.php anda
-                        $stmt = $pdo->query("SELECT nama, email FROM staff");
+                        $stmt = $pdo->query("SELECT nama, email FROM staff ORDER BY nama ASC");
                         while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
                             echo '<option value="' . htmlspecialchars($row['nama']) . '" data-email="' . htmlspecialchars($row['email']) . '">' . htmlspecialchars($row['nama']) . '</option>';
                         }
