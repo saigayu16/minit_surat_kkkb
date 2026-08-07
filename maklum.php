@@ -1,4 +1,4 @@
-<?php 
+   <?php 
 include('db.php'); 
 $id = $_GET['id'] ?? ''; 
 ?>
@@ -118,7 +118,7 @@ $id = $_GET['id'] ?? '';
                 <select name="nama_staf" required>
                     <option value="">-- Pilih Nama Staf --</option>
                     <?php
-                    $result_nama = mysqli_query($conn, "SELECT nama FROM Staff");
+                    $result_nama = mysqli_query($conn, "SELECT nama FROM staff");
                     while ($row_nama = mysqli_fetch_assoc($result_nama)) {
                         echo '<option value="' . htmlspecialchars($row_nama['nama']) . '">' . htmlspecialchars($row_nama['nama']) . '</option>';
                     }
@@ -131,7 +131,7 @@ $id = $_GET['id'] ?? '';
                 <select name="email" required>
                     <option value="">-- Pilih E-mel Staf --</option>
                     <?php
-                    $result_email = mysqli_query($conn, "SELECT email FROM Staff");
+                    $result_email = mysqli_query($conn, "SELECT email FROM staff");
                     while ($row_email = mysqli_fetch_assoc($result_email)) {
                         echo '<option value="' . htmlspecialchars($row_email['email']) . '">' . htmlspecialchars($row_email['email']) . '</option>';
                     }
