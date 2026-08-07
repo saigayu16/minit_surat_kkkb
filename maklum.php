@@ -32,9 +32,9 @@ $id = $_GET['id'] ?? '';
             width: 100%;
             height: 100%;
             background-image: linear-gradient(rgba(0,0,0,0.3), rgba(0,0,0,0.3)), url('daftarsurat.jpg'); 
-            background-size: cover;           /* Gambar akan tutup seluruh skrin */
-            background-position: center;      /* Gambar sentiasa di tengah */
-            background-attachment: fixed;     /* Gambar tidak bergerak bila scroll */
+            background-size: cover;          /* Gambar akan tutup seluruh skrin */
+            background-position: center;     /* Gambar sentiasa di tengah */
+            background-attachment: fixed;    /* Gambar tidak bergerak bila scroll */
             background-repeat: no-repeat;
             filter: blur(8px); /* Ubah nilai 8px ini jika mahu lebih atau kurang kabur */
             transform: scale(1.1); /* Mengelakkan kesan putih di tepi akibat blur */
@@ -60,7 +60,7 @@ $id = $_GET['id'] ?? '';
         .form-group { margin-bottom: 15px; }
         label { display: block; margin-bottom: 5px; color: #795548; font-size: 0.9rem; font-weight: 600; }
         
-        input { 
+        input, select { 
             width: 100%; 
             padding: 12px; 
             border: 2px dashed #fbc02d; 
@@ -110,12 +110,28 @@ $id = $_GET['id'] ?? '';
             
             <div class="form-group">
                 <label>Nama Staf:</label>
-                <input type="text" name="nama_staf" required>
+                <select name="nama_staf" required>
+                    <option value="">-- Sila Pilih Nama Staf --</option>
+                    <?php
+                    $result = mysqli_query($conn, "SELECT nama, email FROM staff");
+                    while ($row = mysqli_fetch_assoc($result)) {
+                        echo '<option value="' . htmlspecialchars($row['nama']) . '">' . htmlspecialchars($row['nama']) . '</option>';
+                    }
+                    ?>
+                </select>
             </div>
             
             <div class="form-group">
                 <label>E-mel Staf:</label>
-                <input type="email" name="email" required>
+                <select name="email" required>
+                    <option value="">-- Sila Pilih E-mel Staf --</option>
+                    <?php
+                    $result_email = mysqli_query($conn, "SELECT email FROM staff");
+                    while ($row = mysqli_fetch_assoc($result_email)) {
+                        echo '<option value="' . htmlspecialchars($row['email']) . '">' . htmlspecialchars($row['email']) . '</option>';
+                    }
+                    ?>
+                </select>
             </div>
             
             <div class="form-group">
