@@ -69,11 +69,6 @@ $id =$_GET['id'] ?? '';
             box-sizing: border-box; 
             font-family: inherit;
         }
-
-        select option {
-            background: #fff9c4;
-            color: #5d4037;
-        }
  
         button { 
             width: 100%; 
