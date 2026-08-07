@@ -111,12 +111,14 @@ $id = $_GET['id'] ?? '';
                 <select name="nama_staf" id="nama_staf" required onchange="fillEmail(this)">
                     <option value="">-- Sila Pilih Nama Staf --</option>
                     <?php
-                    // Menggunakan pg_query untuk PostgreSQL
-                    $result = pg_query($conn, "SELECT nama, email FROM staff");
-                    if ($result) {
-                        while ($row = pg_fetch_assoc($result)) {
+                    try {
+                        $stmt = $conn->query("SELECT nama, email FROM staff");
+                        while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
                             echo '<option value="' . htmlspecialchars($row['nama']) . '" data-email="' . htmlspecialchars($row['email']) . '">' . htmlspecialchars($row['nama']) . '</option>';
                         }
+                    } catch (PDOException $e) {
+                        // Paparkan ralat jika query gagal
+                        echo '<option value="" disabled>Ralat: ' . $e->getMessage() . '</option>';
                     }
                     ?>
                 </select>
