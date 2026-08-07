@@ -32,9 +32,9 @@ $id = $_GET['id'] ?? '';
             width: 100%;
             height: 100%;
             background-image: linear-gradient(rgba(0,0,0,0.3), rgba(0,0,0,0.3)), url('daftarsurat.jpg'); 
-            background-size: cover;           /* Gambar akan tutup seluruh skrin */
-            background-position: center;      /* Gambar sentiasa di tengah */
-            background-attachment: fixed;     /* Gambar tidak bergerak bila scroll */
+            background-size: cover;            /* Gambar akan tutup seluruh skrin */
+            background-position: center;       /* Gambar sentiasa di tengah */
+            background-attachment: fixed;      /* Gambar tidak bergerak bila scroll */
             background-repeat: no-repeat;
             filter: blur(8px); /* Ubah nilai 8px ini jika mahu lebih atau kurang kabur */
             transform: scale(1.1); /* Mengelakkan kesan putih di tepi akibat blur */
@@ -60,7 +60,7 @@ $id = $_GET['id'] ?? '';
         .form-group { margin-bottom: 15px; }
         label { display: block; margin-bottom: 5px; color: #795548; font-size: 0.9rem; font-weight: 600; }
         
-        input { 
+        input, select { 
             width: 100%; 
             padding: 12px; 
             border: 2px dashed #fbc02d; 
@@ -68,6 +68,11 @@ $id = $_GET['id'] ?? '';
             background: rgba(255,255,255,0.4);
             box-sizing: border-box; 
             font-family: inherit;
+        }
+
+        select option {
+            background: #fff9c4;
+            color: #5d4037;
         }
 
         button { 
@@ -110,12 +115,22 @@ $id = $_GET['id'] ?? '';
             
             <div class="form-group">
                 <label>Nama Staf:</label>
-                <input type="text" name="nama_staf" required>
+                <select name="nama_staf" id="nama_staf" class="form-control" required onchange="updateEmail(this)">
+                    <option value="">-- Pilih Nama Staf --</option>
+                    <?php
+                    // Pastikan nama table adalah 'staff' dan kolum 'nama' serta 'email'
+                    $query = mysqli_query($conn, "SELECT * FROM staff");
+                    while ($row = mysqli_fetch_assoc($query)) {
+                        // Menyimpan nilai email di dalam atribut 'data-email'
+                        echo '<option value="' . htmlspecialchars($row['nama']) . '" data-email="' . htmlspecialchars($row['email']) . '">' . htmlspecialchars($row['nama']) . '</option>';
+                    }
+                    ?>
+                </select>
             </div>
             
             <div class="form-group">
                 <label>E-mel Staf:</label>
-                <input type="email" name="email" required>
+                <input type="email" name="email" id="email" required readonly style="background: rgba(255,255,255,0.6); cursor: not-allowed;">
             </div>
             
             <div class="form-group">
@@ -131,6 +146,17 @@ $id = $_GET['id'] ?? '';
             <button type="submit">Hantar Sekarang!</button>
         </form>
     </div>
+
+    <script>
+        function updateEmail(selectElement) {
+            // Ambil option yang sedang dipilih
+            var selectedOption = selectElement.options[selectElement.selectedIndex];
+            // Ambil data-email dari option tersebut
+            var email = selectedOption.getAttribute('data-email');
+            // Masukkan ke dalam input e-mel
+            document.getElementById('email').value = email ? email : '';
+        }
+    </script>
 
 </body>
 </html>
