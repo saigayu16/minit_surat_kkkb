@@ -22,8 +22,7 @@ $id = $_GET['id'] ?? '';
             position: relative;
             overflow: hidden;
         }
- 
-        /* Lapisan khas untuk imej latar belakang dengan kesan blur */
+
         body::before {
             content: '';
             position: fixed;
@@ -32,29 +31,29 @@ $id = $_GET['id'] ?? '';
             width: 100%;
             height: 100%;
             background-image: linear-gradient(rgba(0,0,0,0.3), rgba(0,0,0,0.3)), url('daftarsurat.jpg'); 
-            background-size: cover;          /* Gambar akan tutup seluruh skrin */
-            background-position: center;     /* Gambar sentiasa di tengah */
-            background-attachment: fixed;    /* Gambar tidak bergerak bila scroll */
+            background-size: cover;          
+            background-position: center;     
+            background-attachment: fixed;    
             background-repeat: no-repeat;
-            filter: blur(8px); /* Ubah nilai 8px ini jika mahu lebih atau kurang kabur */
-            transform: scale(1.1); /* Mengelakkan kesan putih di tepi akibat blur */
-            z-index: -1; /* Memastikan latar belakang berada di lapisan paling bawah */
+            filter: blur(8px); 
+            transform: scale(1.1); 
+            z-index: -1; 
         }
- 
+
         .box { 
-            background: #fff9c4; /* Warna kuning sticky note */
+            background: #fff9c4; 
             padding: 40px; 
             border-radius: 2px 20px 2px 20px; 
             width: 100%; 
             max-width: 400px; 
-            box-shadow: 15px 15px 30px rgba(0,0,0,0.15); /* Bayang lebih dalam */
+            box-shadow: 15px 15px 30px rgba(0,0,0,0.15); 
             position: relative;
-            transform: rotate(-2deg); /* Kesan senget comel */
+            transform: rotate(-2deg); 
             transition: transform 0.3s;
         }
- 
-        .box:hover { transform: rotate(0deg) scale(1.02); } /* Nota jadi tegak bila mouse atas */
- 
+
+        .box:hover { transform: rotate(0deg) scale(1.02); }
+
         h3 { margin: 0 0 20px 0; color: #5d4037; text-align: center; font-weight: 700; }
         
         .form-group { margin-bottom: 15px; }
@@ -69,7 +68,7 @@ $id = $_GET['id'] ?? '';
             box-sizing: border-box; 
             font-family: inherit;
         }
- 
+
         button { 
             width: 100%; 
             padding: 12px; 
@@ -84,8 +83,7 @@ $id = $_GET['id'] ?? '';
             box-shadow: 0 4px 6px rgba(0,0,0,0.1);
         }
         button:hover { background: #e65100; transform: scale(1.03); }
- 
-        /* Pin comel di atas nota */
+
         .pin {
             width: 25px;
             height: 25px;
@@ -100,7 +98,7 @@ $id = $_GET['id'] ?? '';
     </style>
 </head>
 <body>
- 
+
     <div class="box">
         <div class="pin"></div>
         <h3><i class="fa-solid fa-note-sticky"></i> Nota Makluman</h3>
@@ -113,9 +111,12 @@ $id = $_GET['id'] ?? '';
                 <select name="nama_staf" id="nama_staf" required onchange="fillEmail(this)">
                     <option value="">-- Sila Pilih Nama Staf --</option>
                     <?php
-                    $result = mysqli_query($conn, "SELECT nama, email FROM staff");
-                    while ($row = mysqli_fetch_assoc($result)) {
-                        echo '<option value="' . htmlspecialchars($row['nama']) . '" data-email="' . htmlspecialchars($row['email']) . '">' . htmlspecialchars($row['nama']) . '</option>';
+                    // Menggunakan pg_query untuk PostgreSQL
+                    $result = pg_query($conn, "SELECT nama, email FROM staff");
+                    if ($result) {
+                        while ($row = pg_fetch_assoc($result)) {
+                            echo '<option value="' . htmlspecialchars($row['nama']) . '" data-email="' . htmlspecialchars($row['email']) . '">' . htmlspecialchars($row['nama']) . '</option>';
+                        }
                     }
                     ?>
                 </select>
@@ -130,7 +131,7 @@ $id = $_GET['id'] ?? '';
                 <label>Dokumen Asal:</label>
                 <input type="file" name="dokumen_asal" accept=".pdf,.jpg,.png" required>
             </div>
- 
+
             <div class="form-group">
                 <label>Borang Minit Ceraian:</label>
                 <input type="file" name="dokumen_minit" accept=".pdf,.jpg,.png" required>
@@ -147,6 +148,6 @@ $id = $_GET['id'] ?? '';
             document.getElementById('email').value = email ? email : '';
         }
     </script>
- 
+
 </body>
 </html>
