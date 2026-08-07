@@ -112,12 +112,12 @@ $id = $_GET['id'] ?? '';
                     <option value="">-- Sila Pilih Nama Staf --</option>
                     <?php
                     try {
-                        $stmt = $conn->query("SELECT nama, email FROM staff");
+                        // Menggunakan $pdo mengikut konfigurasi fail db.php anda
+                        $stmt = $pdo->query("SELECT nama, email FROM staff");
                         while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
                             echo '<option value="' . htmlspecialchars($row['nama']) . '" data-email="' . htmlspecialchars($row['email']) . '">' . htmlspecialchars($row['nama']) . '</option>';
                         }
                     } catch (PDOException $e) {
-                        // Paparkan ralat jika query gagal
                         echo '<option value="" disabled>Ralat: ' . $e->getMessage() . '</option>';
                     }
                     ?>
