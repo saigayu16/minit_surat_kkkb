@@ -23,7 +23,6 @@ $id = $_GET['id'] ?? '';
             overflow: hidden;
         }
 
-        /* Lapisan khas untuk imej latar belakang dengan kesan blur */
         body::before {
             content: '';
             position: fixed;
@@ -32,28 +31,28 @@ $id = $_GET['id'] ?? '';
             width: 100%;
             height: 100%;
             background-image: linear-gradient(rgba(0,0,0,0.3), rgba(0,0,0,0.3)), url('daftarsurat.jpg'); 
-            background-size: cover;          /* Gambar akan tutup seluruh skrin */
-            background-position: center;     /* Gambar sentiasa di tengah */
-            background-attachment: fixed;    /* Gambar tidak bergerak bila scroll */
+            background-size: cover;          
+            background-position: center;     
+            background-attachment: fixed;    
             background-repeat: no-repeat;
-            filter: blur(8px); /* Ubah nilai 8px ini jika mahu lebih atau kurang kabur */
-            transform: scale(1.1); /* Mengelakkan kesan putih di tepi akibat blur */
-            z-index: -1; /* Memastikan latar belakang berada di lapisan paling bawah */
+            filter: blur(8px); 
+            transform: scale(1.1); 
+            z-index: -1; 
         }
 
         .box { 
-            background: #fff9c4; /* Warna kuning sticky note */
+            background: #fff9c4; 
             padding: 40px; 
             border-radius: 2px 20px 2px 20px; 
             width: 100%; 
             max-width: 400px; 
-            box-shadow: 15px 15px 30px rgba(0,0,0,0.15); /* Bayang lebih dalam */
+            box-shadow: 15px 15px 30px rgba(0,0,0,0.15); 
             position: relative;
-            transform: rotate(-2deg); /* Kesan senget comel */
+            transform: rotate(-2deg); 
             transition: transform 0.3s;
         }
 
-        .box:hover { transform: rotate(0deg) scale(1.02); } /* Nota jadi tegak bila mouse atas */
+        .box:hover { transform: rotate(0deg) scale(1.02); }
 
         h3 { margin: 0 0 20px 0; color: #5d4037; text-align: center; font-weight: 700; }
         
@@ -85,7 +84,6 @@ $id = $_GET['id'] ?? '';
         }
         button:hover { background: #e65100; transform: scale(1.03); }
 
-        /* Pin comel di atas nota */
         .pin {
             width: 25px;
             height: 25px;
@@ -110,12 +108,13 @@ $id = $_GET['id'] ?? '';
             
             <div class="form-group">
                 <label>Nama Staf:</label>
-                <select name="nama_staf" required>
+                <select name="nama_staf" id="nama_staf" required onchange="fillEmail(this)">
                     <option value="">-- Sila Pilih Nama Staf --</option>
                     <?php
                     $result = mysqli_query($conn, "SELECT nama, email FROM staff");
                     while ($row = mysqli_fetch_assoc($result)) {
-                        echo '<option value="' . htmlspecialchars($row['nama']) . '">' . htmlspecialchars($row['nama']) . '</option>';
+                        // Simpan email dalam atribut data-email untuk dibaca oleh JavaScript
+                        echo '<option value="' . htmlspecialchars($row['nama']) . '" data-email="' . htmlspecialchars($row['email']) . '">' . htmlspecialchars($row['nama']) . '</option>';
                     }
                     ?>
                 </select>
@@ -123,15 +122,7 @@ $id = $_GET['id'] ?? '';
             
             <div class="form-group">
                 <label>E-mel Staf:</label>
-                <select name="email" required>
-                    <option value="">-- Sila Pilih E-mel Staf --</option>
-                    <?php
-                    $result_email = mysqli_query($conn, "SELECT email FROM staff");
-                    while ($row = mysqli_fetch_assoc($result_email)) {
-                        echo '<option value="' . htmlspecialchars($row['email']) . '">' . htmlspecialchars($row['email']) . '</option>';
-                    }
-                    ?>
-                </select>
+                <input type="email" name="email" id="email" required readonly style="background: rgba(0,0,0,0.05); cursor: not-allowed;" placeholder="Akan terpapar secara automatik">
             </div>
             
             <div class="form-group">
@@ -147,6 +138,17 @@ $id = $_GET['id'] ?? '';
             <button type="submit">Hantar Sekarang!</button>
         </form>
     </div>
+
+    <script>
+        function fillEmail(selectElement) {
+            // Ambil pilihan yang sedang dipilih
+            const selectedOption = selectElement.options[selectElement.selectedIndex];
+            // Ambil nilai dari atribut data-email
+            const email = selectedOption.getAttribute('data-email');
+            // Masukkan ke dalam input e-mel
+            document.getElementById('email').value = email ? email : '';
+        }
+    </script>
 
 </body>
 </html>
