@@ -23,6 +23,7 @@ $id = $_GET['id'] ?? '';
             overflow: hidden;
         }
  
+        /* Lapisan khas untuk imej latar belakang dengan kesan blur */
         body::before {
             content: '';
             position: fixed;
@@ -31,35 +32,35 @@ $id = $_GET['id'] ?? '';
             width: 100%;
             height: 100%;
             background-image: linear-gradient(rgba(0,0,0,0.3), rgba(0,0,0,0.3)), url('daftarsurat.jpg'); 
-            background-size: cover;          
-            background-position: center;     
-            background-attachment: fixed;    
+            background-size: cover;          /* Gambar akan tutup seluruh skrin */
+            background-position: center;     /* Gambar sentiasa di tengah */
+            background-attachment: fixed;    /* Gambar tidak bergerak bila scroll */
             background-repeat: no-repeat;
-            filter: blur(8px); 
-            transform: scale(1.1); 
-            z-index: -1; 
+            filter: blur(8px); /* Ubah nilai 8px ini jika mahu lebih atau kurang kabur */
+            transform: scale(1.1); /* Mengelakkan kesan putih di tepi akibat blur */
+            z-index: -1; /* Memastikan latar belakang berada di lapisan paling bawah */
         }
  
         .box { 
-            background: #fff9c4; 
+            background: #fff9c4; /* Warna kuning sticky note */
             padding: 40px; 
             border-radius: 2px 20px 2px 20px; 
             width: 100%; 
             max-width: 400px; 
-            box-shadow: 15px 15px 30px rgba(0,0,0,0.15); 
+            box-shadow: 15px 15px 30px rgba(0,0,0,0.15); /* Bayang lebih dalam */
             position: relative;
-            transform: rotate(-2deg); 
+            transform: rotate(-2deg); /* Kesan senget comel */
             transition: transform 0.3s;
         }
  
-        .box:hover { transform: rotate(0deg) scale(1.02); } 
+        .box:hover { transform: rotate(0deg) scale(1.02); } /* Nota jadi tegak bila mouse atas */
  
         h3 { margin: 0 0 20px 0; color: #5d4037; text-align: center; font-weight: 700; }
         
         .form-group { margin-bottom: 15px; }
         label { display: block; margin-bottom: 5px; color: #795548; font-size: 0.9rem; font-weight: 600; }
         
-        input, select { 
+        input { 
             width: 100%; 
             padding: 12px; 
             border: 2px dashed #fbc02d; 
@@ -67,11 +68,6 @@ $id = $_GET['id'] ?? '';
             background: rgba(255,255,255,0.4);
             box-sizing: border-box; 
             font-family: inherit;
-        }
-
-        select option {
-            background: #fff9c4;
-            color: #5d4037;
         }
  
         button { 
@@ -89,6 +85,7 @@ $id = $_GET['id'] ?? '';
         }
         button:hover { background: #e65100; transform: scale(1.03); }
  
+        /* Pin comel di atas nota */
         .pin {
             width: 25px;
             height: 25px;
@@ -113,48 +110,32 @@ $id = $_GET['id'] ?? '';
             
             <div class="form-group">
                 <label>Nama Staf:</label>
-                <select name="nama_staf" required>
-                    <option value="">-- Pilih Nama Staf --</option>
+                <input type="text" name="nama_staf" list="senarai_nama" required autocomplete="off">
+                <datalist id="senarai_nama">
                     <?php
                     $result_nama = mysqli_query($conn, "SELECT nama FROM staff");
-                    if ($result_nama && mysqli_num_rows($result_nama) > 0) {
-                        while ($row_nama = mysqli_fetch_assoc($result_nama)) {
-                            echo '<option value="' . htmlspecialchars($row_nama['nama']) . '">' . htmlspecialchars($row_nama['nama']) . '</option>';
-                        }
-                    } else {
-                        // Jika table staff gagal, cuba guna huruf besar Staff
-                        $result_nama_alt = mysqli_query($conn, "SELECT nama FROM Staff");
-                        if ($result_nama_alt) {
-                            while ($row_nama = mysqli_fetch_assoc($result_nama_alt)) {
-                                echo '<option value="' . htmlspecialchars($row_nama['nama']) . '">' . htmlspecialchars($row_nama['nama']) . '</option>';
-                            }
+                    if ($result_nama) {
+                        while ($row = mysqli_fetch_assoc($result_nama)) {
+                            echo '<option value="' . htmlspecialchars($row['nama']) . '">';
                         }
                     }
                     ?>
-                </select>
+                </datalist>
             </div>
             
             <div class="form-group">
                 <label>E-mel Staf:</label>
-                <select name="email" required>
-                    <option value="">-- Pilih E-mel Staf --</option>
+                <input type="email" name="email" list="senarai_email" required autocomplete="off">
+                <datalist id="senarai_email">
                     <?php
                     $result_email = mysqli_query($conn, "SELECT email FROM staff");
-                    if ($result_email && mysqli_num_rows($result_email) > 0) {
-                        while ($row_email = mysqli_fetch_assoc($result_email)) {
-                            echo '<option value="' . htmlspecialchars($row_email['email']) . '">' . htmlspecialchars($row_email['email']) . '</option>';
-                        }
-                    } else {
-                        // Jika table staff gagal, cuba guna huruf besar Staff
-                        $result_email_alt = mysqli_query($conn, "SELECT email FROM Staff");
-                        if ($result_email_alt) {
-                            while ($row_email = mysqli_fetch_assoc($result_email_alt)) {
-                                echo '<option value="' . htmlspecialchars($row_email['email']) . '">' . htmlspecialchars($row_email['email']) . '</option>';
-                            }
+                    if ($result_email) {
+                        while ($row = mysqli_fetch_assoc($result_email)) {
+                            echo '<option value="' . htmlspecialchars($row['email']) . '">';
                         }
                     }
                     ?>
-                </select>
+                </datalist>
             </div>
             
             <div class="form-group">
