@@ -1,4 +1,4 @@
-   <?php 
+<?php 
 include('db.php'); 
 $id = $_GET['id'] ?? ''; 
 ?>
@@ -23,7 +23,6 @@ $id = $_GET['id'] ?? '';
             overflow: hidden;
         }
  
-        /* Lapisan khas untuk imej latar belakang dengan kesan blur */
         body::before {
             content: '';
             position: fixed;
@@ -32,28 +31,28 @@ $id = $_GET['id'] ?? '';
             width: 100%;
             height: 100%;
             background-image: linear-gradient(rgba(0,0,0,0.3), rgba(0,0,0,0.3)), url('daftarsurat.jpg'); 
-            background-size: cover;          /* Gambar akan tutup seluruh skrin */
-            background-position: center;     /* Gambar sentiasa di tengah */
-            background-attachment: fixed;    /* Gambar tidak bergerak bila scroll */
+            background-size: cover;          
+            background-position: center;     
+            background-attachment: fixed;    
             background-repeat: no-repeat;
-            filter: blur(8px); /* Ubah nilai 8px ini jika mahu lebih atau kurang kabur */
-            transform: scale(1.1); /* Mengelakkan kesan putih di tepi akibat blur */
-            z-index: -1; /* Memastikan latar belakang berada di lapisan paling bawah */
+            filter: blur(8px); 
+            transform: scale(1.1); 
+            z-index: -1; 
         }
  
         .box { 
-            background: #fff9c4; /* Warna kuning sticky note */
+            background: #fff9c4; 
             padding: 40px; 
             border-radius: 2px 20px 2px 20px; 
             width: 100%; 
             max-width: 400px; 
-            box-shadow: 15px 15px 30px rgba(0,0,0,0.15); /* Bayang lebih dalam */
+            box-shadow: 15px 15px 30px rgba(0,0,0,0.15); 
             position: relative;
-            transform: rotate(-2deg); /* Kesan senget comel */
+            transform: rotate(-2deg); 
             transition: transform 0.3s;
         }
  
-        .box:hover { transform: rotate(0deg) scale(1.02); } /* Nota jadi tegak bila mouse atas */
+        .box:hover { transform: rotate(0deg) scale(1.02); } 
  
         h3 { margin: 0 0 20px 0; color: #5d4037; text-align: center; font-weight: 700; }
         
@@ -90,7 +89,6 @@ $id = $_GET['id'] ?? '';
         }
         button:hover { background: #e65100; transform: scale(1.03); }
  
-        /* Pin comel di atas nota */
         .pin {
             width: 25px;
             height: 25px;
@@ -119,8 +117,18 @@ $id = $_GET['id'] ?? '';
                     <option value="">-- Pilih Nama Staf --</option>
                     <?php
                     $result_nama = mysqli_query($conn, "SELECT nama FROM staff");
-                    while ($row_nama = mysqli_fetch_assoc($result_nama)) {
-                        echo '<option value="' . htmlspecialchars($row_nama['nama']) . '">' . htmlspecialchars($row_nama['nama']) . '</option>';
+                    if ($result_nama && mysqli_num_rows($result_nama) > 0) {
+                        while ($row_nama = mysqli_fetch_assoc($result_nama)) {
+                            echo '<option value="' . htmlspecialchars($row_nama['nama']) . '">' . htmlspecialchars($row_nama['nama']) . '</option>';
+                        }
+                    } else {
+                        // Jika table staff gagal, cuba guna huruf besar Staff
+                        $result_nama_alt = mysqli_query($conn, "SELECT nama FROM Staff");
+                        if ($result_nama_alt) {
+                            while ($row_nama = mysqli_fetch_assoc($result_nama_alt)) {
+                                echo '<option value="' . htmlspecialchars($row_nama['nama']) . '">' . htmlspecialchars($row_nama['nama']) . '</option>';
+                            }
+                        }
                     }
                     ?>
                 </select>
@@ -132,8 +140,18 @@ $id = $_GET['id'] ?? '';
                     <option value="">-- Pilih E-mel Staf --</option>
                     <?php
                     $result_email = mysqli_query($conn, "SELECT email FROM staff");
-                    while ($row_email = mysqli_fetch_assoc($result_email)) {
-                        echo '<option value="' . htmlspecialchars($row_email['email']) . '">' . htmlspecialchars($row_email['email']) . '</option>';
+                    if ($result_email && mysqli_num_rows($result_email) > 0) {
+                        while ($row_email = mysqli_fetch_assoc($result_email)) {
+                            echo '<option value="' . htmlspecialchars($row_email['email']) . '">' . htmlspecialchars($row_email['email']) . '</option>';
+                        }
+                    } else {
+                        // Jika table staff gagal, cuba guna huruf besar Staff
+                        $result_email_alt = mysqli_query($conn, "SELECT email FROM Staff");
+                        if ($result_email_alt) {
+                            while ($row_email = mysqli_fetch_assoc($result_email_alt)) {
+                                echo '<option value="' . htmlspecialchars($row_email['email']) . '">' . htmlspecialchars($row_email['email']) . '</option>';
+                            }
+                        }
                     }
                     ?>
                 </select>
