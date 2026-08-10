@@ -1,5 +1,5 @@
 <?php
-// Aktifkan paparan ralat untuk mengesan masalah jika data gagal masuk
+// Enable error reporting for debugging
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
 
@@ -241,7 +241,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     <h2>Daftar Pengguna</h2>
     <p class="subtitle">Sila lengkapkan maklumat akaun baharu</p>
     
-    <form method="POST">
+    <form method="POST" action="">
         <div class="input-group">
             <i class="fa-solid fa-user"></i>
             <input type="text" name="username" placeholder="Nama Pengguna" required>
