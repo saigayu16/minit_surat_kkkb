@@ -58,7 +58,8 @@ if (!$surat) { die("Dokumen tidak ditemui"); }
         .sticky-note { background: #fef08a; padding: 15px; border-radius: 4px; box-shadow: 3px 3px 5px rgba(0,0,0,0.1); margin-bottom: 20px; }
         #signature-pad { border: 2px dashed #cbd5e0; width: 100%; height: 180px; border-radius: 8px; cursor: crosshair; background-color: #fafafa; margin-bottom: 15px; }
         .btn { padding: 12px 20px; cursor: pointer; border: none; border-radius: 6px; font-weight: bold; width: 48%; transition: opacity 0.2s; }
-        textarea { width: 100%; height: 80px; padding: 10px; border: 1px solid #cbd5e0; border-radius: 6px; box-sizing: border-box; margin-bottom: 15px; resize: vertical; }
+        textarea, input[type="text"] { width: 100%; padding: 10px; border: 1px solid #cbd5e0; border-radius: 6px; box-sizing: border-box; margin-bottom: 15px; }
+        textarea { height: 80px; resize: vertical; }
 
         .sticky-note-box { background: #f0f7ff; padding: 20px; border-radius: 8px; border-left: 5px solid #2563eb; box-shadow: 0 4px 6px rgba(0,0,0,0.05); margin-bottom: 20px; }
         .arahan-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 15px; }
@@ -107,6 +108,13 @@ if (!$surat) { die("Dokumen tidak ditemui"); }
             </div>
         </div>
 
+        <!-- Kolom Pegawai dan Salinan Kepada -->
+        <label><strong>Pegawai (Tindakan kepada):</strong></label>
+        <input type="text" id="pegawai" placeholder="Masukkan nama pegawai...">
+
+        <label><strong>Salinan Kepada (U.P / CC):</strong></label>
+        <input type="text" id="salinan_kepada" placeholder="Masukkan nama pihak berkaitan...">
+
         <p>Sila turunkan tandatangan digital di bawah:</p>
         <canvas id="signature-pad"></canvas>
         
@@ -135,6 +143,8 @@ if (!$surat) { die("Dokumen tidak ditemui"); }
         formData.append('id', idSurat);
         formData.append('image', signaturePad.toDataURL('image/png'));
         formData.append('catatan', document.getElementById('catatan').value);
+        formData.append('pegawai', document.getElementById('pegawai').value);
+        formData.append('salinan_kepada', document.getElementById('salinan_kepada').value);
         
         const selectedArahan = [];
         document.querySelectorAll('input[name="arahan"]:checked').forEach((cb) => selectedArahan.push(cb.value));
