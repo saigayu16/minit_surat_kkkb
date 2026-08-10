@@ -7,8 +7,8 @@ if (!isset($_GET['id']) || empty($_GET['id'])) { die("ID Dokumen tidak sah."); }
 
 $id = intval($_GET['id']);
 
-// Menggunakan senarai kolum yang tepat termasuk kolum baru untuk mengelakkan ralat cache pelan PostgreSQL
-$stmt = $pdo->prepare("SELECT id, no_rujukan, tarikh_terima, daripada, kepada, perkara, perkara_surat, kolej, didaftarkan_oleh, status, fail_surat, tempoh_tindakan, tandatangan_fail, tarikh_disahkan, target_role, catatan, tandatangan, arahan_pilihan, maklum_kepada, tandatangan_data, drive_file_id, arahan, created_at, staf_dimaklumkan, pegawai, salinan_kepada FROM minit_surat WHERE id = ?");
+// 1. Ambil maklumat minit surat dan maklumat pengguna yang berkaitan (jika ada perkaitan ID staf/emel atau target_role)
+$stmt = $pdo->prepare("SELECT m.*, u.role as user_role FROM minit_surat m LEFT JOIN users u ON m.target_role = u.role OR m.didaftarkan_oleh = u.email WHERE m.id = ?");
 $stmt->execute([$id]);
 $row = $stmt->fetch(PDO::FETCH_ASSOC);
 
@@ -26,6 +26,26 @@ $pegawai = htmlspecialchars($row['pegawai'] ?? '-');
 $salinan_kepada = htmlspecialchars($row['salinan_kepada'] ?? '-');
 $tarikh_sah = !empty($row['tarikh_disahkan']) ? date('d/m/Y', strtotime($row['tarikh_disahkan'])) : (!empty($row['tarikh_sah']) ? date('d/m/Y', strtotime($row['tarikh_sah'])) : date('d/m/Y'));
 $signature_data = $row['tandatangan'] ?? ''; 
+
+// 2. Membaca nilai role dari pangkalan data (table users / column role)
+// Dinormalisasikan kepada huruf kecil untuk perbandingan yang tepat (tpa, tpp, pengarah)
+$role = strtolower(trim($row['user_role'] ?? $row['target_role'] ?? ''));
+
+// Tetapan default (jika tiada padanan)
+$nama_pejabat = "PEJABAT PENGARAH<br>KOLEJ KOMUNITI KEPALA BATAS";
+$gelaran_tandatangan = "PENGARAH";
+
+// Logik dinamik berdasarkan nilai role di database: 'tpa', 'tpp', 'pengarah'
+if ($role === 'tpp') {
+    $nama_pejabat = "PEJABAT TIMBALAN PENGARAH PENGURUSAN<br>KOLEJ KOMUNITI KEPALA BATAS";
+    $gelaran_tandatangan = "TIMBALAN PENGARAH (PENGURUSAN)";
+} elseif ($role === 'tpa') {
+    $nama_pejabat = "PEJABAT TIMBALAN PENGARAH AKADEMIK<br>KOLEJ KOMUNITI KEPALA BATAS";
+    $gelaran_tandatangan = "TIMBALAN PENGARAH (AKADEMIK)";
+} elseif ($role === 'pengarah') {
+    $nama_pejabat = "PEJABAT PENGARAH<br>KOLEJ KOMUNITI KEPALA BATAS";
+    $gelaran_tandatangan = "PENGARAH";
+}
 ?>
 
 <!DOCTYPE html>
@@ -52,7 +72,7 @@ $signature_data = $row['tandatangan'] ?? '';
         }
          
         .header-title { font-size: 26px; font-weight: 800; color: #1e293b; text-align: center; text-transform: uppercase; margin-bottom: 5px; }
-        .office-header { font-size: 18px; font-weight: 700; color: #1e293b; text-align: center; margin-bottom: 25px; border-bottom: 2px solid #1e293b; padding-bottom: 15px; }
+        .office-header { font-size: 16px; font-weight: 700; color: #1e293b; text-align: center; margin-bottom: 25px; border-bottom: 2px solid #1e293b; padding-bottom: 15px; line-height: 1.5; }
          
         .sticky-note { 
             background: #fffbeb; padding: 25px; border-radius: 4px; border-left: 10px solid #f59e0b; 
@@ -62,7 +82,7 @@ $signature_data = $row['tandatangan'] ?? '';
         .arahan-badge { background: #f59e0b; color: #fff; padding: 4px 12px; border-radius: 4px; font-size: 12px; font-weight: bold; margin-bottom: 10px; display: inline-block; }
 
         .stamp-box { 
-            border: 3px solid #1e293b; padding: 15px; width: 220px; text-align: center; 
+            border: 3px solid #1e293b; padding: 15px; width: 240px; text-align: center; 
             float: right; margin-top: 40px; background: #fff; position: relative; clear: both;
         }
         .stamp-box::before { content: "TANDATANGAN RASMI"; position: absolute; top: -12px; background: white; padding: 0 5px; font-size: 9px; font-weight: bold; color: #1e293b; }
@@ -81,7 +101,7 @@ $signature_data = $row['tandatangan'] ?? '';
 
 <div class="page-box">
     <div class="header-title">Kertas Minit</div>
-    <div class="office-header">PEJABAT PENGARAH<br>KOLEJ KOMUNITI KEPALA BATAS</div>
+    <div class="office-header"><?= $nama_pejabat ?></div>
      
     <table width="100%" cellpadding="10" border="0" style="border-collapse: collapse; margin-bottom: 20px;">
         <tr>
@@ -107,7 +127,7 @@ $signature_data = $row['tandatangan'] ?? '';
         <div class="stamp-box">
             <img src="<?= $signature_data ?>" class="sig-image">
             <div style="border-top: 1px solid #000; font-size: 11px; font-weight: bold; padding-top: 5px;">
-                PENGARAH<br><?= $tarikh_sah ?>
+                <?= $gelaran_tandatangan ?><br><?= $tarikh_sah ?>
             </div>
         </div>
     <?php endif; ?>
