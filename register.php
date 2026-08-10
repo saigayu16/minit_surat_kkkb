@@ -1,20 +1,21 @@
 <?php
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-    include('db.php');
+    include('db.php'); // Memasukkan fail sambungan PDO
     
     $username = trim($_POST['username']);
-    $password = password_hash($_POST['password'], PASSWORD_DEFAULT);
-    $role     = $_POST['role'];
+    $email    = trim($_POST['email']);
+    $password = password_hash($_POST['password'], PASSWORD_DEFAULT); // Selamatkan kata laluan
+    $role     =$_POST['role'];
 
     try {
-        $stmt = $pdo->prepare("INSERT INTO users (username, password, role) VALUES (?, ?, ?)");
-        $stmt->execute([$username, $password, $role]);
+        // Masukkan lajur email ke dalam query INSERT
+        $stmt =$pdo->prepare("INSERT INTO users (username, email, password, role) VALUES (?, ?, ?, ?)");
+        $stmt->execute([$username,$email, $password,$role]);
 
         echo "<script>alert('Pendaftaran berjaya!'); window.location='login.php';</script>";
         exit;
     } catch (PDOException $e) {
-        // Ini akan paparkan ralat sebenar dari database jika ada masalah
-        echo "<script>alert('Ralat Database: " . addslashes($e->getMessage()) . "');</script>";
+        echo "<script>alert('Ralat: " . addslashes($e->getMessage()) . "');</script>";
     }
 }
 ?>
@@ -54,7 +55,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             display: flex;
             justify-content: center;
             align-items: center;
-            height: 100vh;
+            min-height: 100vh;
         }
 
         .register-card { 
@@ -68,6 +69,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             border: 1px solid var(--border-color); 
             text-align: center;
             position: relative;
+            margin: 20px 0;
         }
 
         .register-card::before {
@@ -235,6 +237,11 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         <div class="input-group">
             <i class="fa-solid fa-user"></i>
             <input type="text" name="username" placeholder="Nama Pengguna" required>
+        </div>
+
+        <div class="input-group">
+            <i class="fa-solid fa-envelope"></i>
+            <input type="email" name="email" placeholder="Alamat Emel" required>
         </div>
         
         <div class="input-group">
