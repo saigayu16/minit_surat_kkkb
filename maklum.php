@@ -237,7 +237,6 @@ if (isset($_GET['padam_id'])) {
                 <div class="staff-checkbox-container">
                     <?php
                     try {
-                        // Pastikan kolum 'id' turut dipilih untuk proses padam
                         $stmt = $pdo->query("SELECT id, nama, email FROM staff ORDER BY nama ASC");
                         while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
                             $staff_id = $row['id'];
@@ -263,9 +262,10 @@ if (isset($_GET['padam_id'])) {
                 <input type="text" name="email" id="email" required readonly style="background: rgba(255,255,255,0.2); cursor: not-allowed;" placeholder="Akan terpapar secara automatik">
             </div>
             
+            <!-- Dokumen Asal dikemaskini kepada multiple -->
             <div class="form-group">
-                <label>Dokumen Asal:</label>
-                <input type="file" name="dokumen_asal" accept=".pdf,.jpg,.png" required>
+                <label>Dokumen Asal (Boleh pilih lebih daripada satu):</label>
+                <input type="file" name="dokumen_asal[]" accept=".pdf,.jpg,.png" multiple required>
             </div>
 
             <div class="form-group">
