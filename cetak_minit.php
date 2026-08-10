@@ -37,10 +37,10 @@ $gelaran_tandatangan = "PENGARAH";
 
 // Logik dinamik berdasarkan nilai role di database: 'tpa', 'tpp', 'pengarah'
 if ($role === 'tpp') {
-    $nama_pejabat = "PEJABAT TIMBALAN PENGARAH PENGURUSAN<br>KOLEJ KOMUNITI KEPALA BATAS";
+    $nama_pejabat = "PEJABAT TIMBALAN PENGARAH<br>KOLEJ KOMUNITI KEPALA BATAS";
     $gelaran_tandatangan = "TIMBALAN PENGARAH (PENGURUSAN)";
 } elseif ($role === 'tpa') {
-    $nama_pejabat = "PEJABAT TIMBALAN PENGARAH AKADEMIK<br>KOLEJ KOMUNITI KEPALA BATAS";
+    $nama_pejabat = "PEJABAT TIMBALAN PENGARAH<br>KOLEJ KOMUNITI KEPALA BATAS";
     $gelaran_tandatangan = "TIMBALAN PENGARAH (AKADEMIK)";
 } elseif ($role === 'pengarah') {
     $nama_pejabat = "PEJABAT PENGARAH<br>KOLEJ KOMUNITI KEPALA BATAS";
