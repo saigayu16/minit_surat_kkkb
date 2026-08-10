@@ -1,10 +1,10 @@
 <?php
 include('db.php'); // Menjangkakan sambungan menggunakan $pdo
- 
+
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-    $email_staf = $_POST['email'] ?? '';
-    $nama_staf  = $_POST['nama_staf'] ?? '';
- 
+    $email_staf_input = $_POST['email'] ?? ''; // Mengandungi senarai e-mel dipisahkan koma (cth: a@mail.com, b@mail.com)
+    $nama_staf_array  = $_POST['nama_staf'] ?? []; // Array nama staf yang dipilih
+  
     // Auto-baca teks 'perkara' daripada surat yang PALING TERKINI (baru sahaja didaftarkan oleh admin)
     $perkara = "Notifikasi Dokumen Asal dan Minit Surat Baharu"; // Nilai default jika tiada rekod
     
@@ -15,28 +15,28 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     if ($row_perkara && !empty($row_perkara['perkara'])) {
         $perkara = $row_perkara['perkara']; // Paparkan tajuk sebenar yang ditaip admin
     }
- 
-    // 1. Semak staf dalam database menggunakan PDO prepared statement
-    $stmt = $pdo->prepare("SELECT nama FROM staff WHERE email = ? LIMIT 1");
-    $stmt->execute([$email_staf]);
-    $staf = $stmt->fetch(PDO::FETCH_ASSOC);
- 
-    if ($staf) {
-        // 2. Sediakan array untuk menampung senarai fail lampiran
+
+    if (!empty($nama_staf_array)) {
+        // 2. Sediakan array untuk menampung senarai fail lampiran (Dokumen Asal & Dokumen Minit)
         $attachments = [];
- 
-        // Lampiran 1: Dokumen Asal
-        if (isset($_FILES['dokumen_asal']) && $_FILES['dokumen_asal']['error'] == 0) {
-            $nama_asal = $_FILES['dokumen_asal']['name'];
-            $base64_asal = base64_encode(file_get_contents($_FILES['dokumen_asal']['tmp_name']));
-            
-            $attachments[] = [
-                "content" => $base64_asal,
-                "name" => $nama_asal
-            ];
+
+        // Lampiran 1: Pelbagai Dokumen Asal (Multiple files)
+        if (isset($_FILES['dokumen_asal']) && !empty($_FILES['dokumen_asal']['name'][0])) {
+            $total_files = count($_FILES['dokumen_asal']['name']);
+            for ($i = 0; $i < $total_files; $i++) {
+                if ($_FILES['dokumen_asal']['error'][$i] == 0) {
+                    $nama_asal = $_FILES['dokumen_asal']['name'][$i];
+                    $base64_asal = base64_encode(file_get_contents($_FILES['dokumen_asal']['tmp_name'][$i]));
+                    
+                    $attachments[] = [
+                        "content" => $base64_asal,
+                        "name" => $nama_asal
+                    ];
+                }
+            }
         }
- 
-        // Lampiran 2: Dokumen Minit
+
+        // Lampiran 2: Dokumen Minit (Single file)
         if (isset($_FILES['dokumen_minit']) && $_FILES['dokumen_minit']['error'] == 0) {
             $nama_minit = $_FILES['dokumen_minit']['name'];
             $base64_minit = base64_encode(file_get_contents($_FILES['dokumen_minit']['tmp_name']));
@@ -46,46 +46,62 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 "name" => $nama_minit
             ];
         }
- 
-        // 3. Sediakan struktur data untuk API Brevo
-        $api_key = getenv('BREVO_API_KEY');
-        
-        $data = [
-            "sender" => ["email" => "kkkepalabatasminit2026@gmail.com", "name" => "Sistem Minit Digital"],
-            "to" => [["email" => $email_staf]],
-            "subject" => $perkara, // Subjek emel mengambil terus teks perkara terkini
-            "htmlContent" => "
-                Assalamualaikum Dan Selamat Sejahtera<br><br>
-                Merujuk Perkara Di Atas Adalah Untuk Tindakan Dan Makluman Pihak Tuan/Puan.<br><br>
-                <b>Perkara:</b> {$perkara}<br><br>
-                Sekian Terima Kasih<br><br>
-                <b>\"MALAYSIA MADANI\"</b><br><br>
-                <b>\"BERKHIDMAT UNTUK NEGARA\"</b>
-            "
-        ];
- 
-        // Masukkan lampiran hanya jika fail wujud
-        if (!empty($attachments)) {
-            $data["attachment"] = $attachments;
+
+        // Sediakan senarai penerima emel dalam bentuk array untuk Brevo API ("to")
+        $to_recipients = [];
+        foreach ($nama_staf_array as $nama_staf_item) {
+            $stmt = $pdo->prepare("SELECT email FROM staff WHERE nama = ? LIMIT 1");
+            $stmt->execute([$nama_staf_item]);
+            $staf_row = $stmt->fetch(PDO::FETCH_ASSOC);
+
+            if ($staf_row && !empty($staf_row['email'])) {
+                $to_recipients[] = ["email" => $staf_row['email']];
+            }
         }
- 
-        // 4. Hantar e-mel menggunakan cURL ke Brevo API
-        $ch = curl_init('https://api.brevo.com/v3/smtp/email');
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($ch, CURLOPT_POST, true);
-        curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($data));
-        curl_setopt($ch, CURLOPT_HTTPHEADER, ['api-key: ' . $api_key, 'Content-Type: application/json']);
-        $response = curl_exec($ch);
-        $http_code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
- 
-        if ($http_code == 201 || $http_code == 200) {
-            echo "<script>alert('E-mel beserta Dokumen Asal dan Dokumen Minit berjaya dihantar kepada staf!'); window.location='homeadmin.php';</script>";
+
+        if (!empty($to_recipients)) {
+            // 3. Sediakan struktur data untuk API Brevo
+            $api_key = getenv('BREVO_API_KEY');
+            
+            $data = [
+                "sender" => ["email" => "kkkepalabatasminit2026@gmail.com", "name" => "Sistem Minit Digital"],
+                "to" => $to_recipients,
+                "subject" => $perkara,
+                "htmlContent" => "
+                    Assalamualaikum Dan Selamat Sejahtera<br><br>
+                    Merujuk Perkara Di Atas Adalah Untuk Tindakan Dan Makluman Pihak Tuan/Puan.<br><br>
+                    <b>Perkara:</b> {$perkara}<br><br>
+                    Sekian Terima Kasih<br><br>
+                    <b>\"MALAYSIA MADANI\"</b><br><br>
+                    <b>\"BERKHIDMAT UNTUK NEGARA\"</b>
+                "
+            ];
+
+            // Masukkan lampiran hanya jika fail wujud
+            if (!empty($attachments)) {
+                $data["attachment"] = $attachments;
+            }
+
+            // 4. Hantar e-mel menggunakan cURL ke Brevo API
+            $ch = curl_init('https://api.brevo.com/v3/smtp/email');
+            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+            curl_setopt($ch, CURLOPT_POST, true);
+            curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($data));
+            curl_setopt($ch, CURLOPT_HTTPHEADER, ['api-key: ' . $api_key, 'Content-Type: application/json']);
+            $response = curl_exec($ch);
+            $http_code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+
+            if ($http_code == 201 || $http_code == 200) {
+                echo "<script>alert('E-mel beserta Dokumen Asal (Multiple) dan Dokumen Minit berjaya dihantar kepada staf!'); window.location='homeadmin.php';</script>";
+            } else {
+                echo "E-mel gagal dihantar. Sila semak API Key Brevo atau saiz keseluruhan fail lampiran di pelayan. Response: " . $response;
+            }
         } else {
-            echo "E-mel gagal dihantar. Sila semak API Key Brevo atau saiz fail lampiran di pelayan.";
+            echo "Tiada e-mel staf yang sah dijumpai untuk dihantar.";
         }
- 
+
     } else {
-        echo "Staf tidak dijumpai di dalam pangkalan data.";
+        echo "Sila pilih sekurang-kurangnya seorang staf.";
     }
 }
 ?>
