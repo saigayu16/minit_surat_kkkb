@@ -1,19 +1,20 @@
 <?php
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-    include('db.php');
+    include('db.php'); // Memasukkan sambungan PDO anda
     
     $username = trim($_POST['username']);
-    $password = $_POST['password']; 
+    $password = password_hash($_POST['password'], PASSWORD_DEFAULT); // Selamatkan kata laluan
     $role     = $_POST['role'];
 
-    $stmt = $conn->prepare("INSERT INTO users (username, password, role) VALUES (?, ?, ?)");
-    $stmt->bind_param("sss", $username, $password, $role);
+    try {
+        // Gunakan PDO prepare statement untuk Neon PostgreSQL
+        $stmt = $pdo->prepare("INSERT INTO users (username, password, role) VALUES (?, ?, ?)");
+        $stmt->execute([$username, $password, $role]);
 
-    if ($stmt->execute()) {
         echo "<script>alert('Pendaftaran berjaya!'); window.location='login.php';</script>";
         exit;
-    } else {
-        echo "<script>alert('Ralat: " . addslashes($conn->error) . "');</script>";
+    } catch (PDOException $e) {
+        echo "<script>alert('Ralat: " . addslashes($e->getMessage()) . "');</script>";
     }
 }
 ?>
