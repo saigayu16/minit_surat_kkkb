@@ -1,30 +1,25 @@
 <?php
-// Enable error reporting for debugging
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
 
-include('db.php'); // Memasukkan fail sambungan PDO
+include('db.php');
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+    echo "1. Borang berjaya dihantar!<br>";
+    
     $username = trim($_POST['username'] ?? '');
     $email    = trim($_POST['email'] ?? '');
     $password = password_hash($_POST['password'] ?? '', PASSWORD_DEFAULT); 
     $role     = $_POST['role'] ?? '';
 
-    if (!empty($username) && !empty($email) && !empty($_POST['password']) && !empty($role)) {
-        try {
-            // Gunakan \"role\" kerana 'role' adalah kata kunci rizab dalam PostgreSQL
-            $stmt = $pdo->prepare("INSERT INTO users (username, email, password, \"role\") VALUES (?, ?, ?, ?)");
-            $stmt->execute([$username, $email, $password, $role]);
-
-            echo "<script>alert('Pendaftaran berjaya!'); window.location='login.php';</script>";
-            exit;
-        } catch (PDOException $e) {
-            echo "<script>alert('Ralat Database: " . addslashes($e->getMessage()) . "');</script>";
-        }
-    } else {
-        echo "<script>alert('Sila lengkapkan semua maklumat!');</script>";
+    try {
+        $stmt = $pdo->prepare("INSERT INTO users (username, email, password, \"role\") VALUES (?, ?, ?, ?)");
+        $stmt->execute([$username, $email, $password, $role]);
+        echo "2. Berjaya simpan dalam database!";
+    } catch (PDOException $e) {
+        echo "2. Ralat Database: " . $e->getMessage();
     }
+    exit();
 }
 ?>
 <!DOCTYPE html>
