@@ -59,7 +59,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['tambah_staf_baru'])) 
             width: 100%;
             height: 100%;
             background-image: linear-gradient(rgba(0,0,0,0.3), rgba(0,0,0,0.3)), url('daftarsurat.jpg'); 
-            background-size: cover;          
+            background-size: cover;         
             background-position: center;     
             background-attachment: fixed;    
             background-repeat: no-repeat;
@@ -73,7 +73,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['tambah_staf_baru'])) 
             padding: 30px 40px; 
             border-radius: 2px 20px 2px 20px; 
             width: 100%; 
-            max-width: 420px; 
+            max-width: 450px; 
             box-shadow: 15px 15px 30px rgba(0,0,0,0.15); 
             position: relative;
             transform: rotate(-1deg); 
@@ -97,6 +97,32 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['tambah_staf_baru'])) 
             box-sizing: border-box; 
             font-family: inherit;
             font-size: 0.9rem;
+        }
+
+        /* Kotak senarai semak staf pelbagai pilihan */
+        .staff-checkbox-container {
+            max-height: 140px;
+            overflow-y: auto;
+            border: 2px dashed #fbc02d;
+            border-radius: 5px;
+            background: rgba(255,255,255,0.4);
+            padding: 8px;
+            box-sizing: border-box;
+        }
+
+        .staff-checkbox-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 6px;
+            font-size: 0.85rem;
+            color: #5d4037;
+            cursor: pointer;
+        }
+
+        .staff-checkbox-item input[type="checkbox"] {
+            width: auto;
+            cursor: pointer;
         }
 
         button { 
@@ -175,25 +201,28 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['tambah_staf_baru'])) 
             <input type="hidden" name="surat_id" value="<?= htmlspecialchars($id) ?>">
             
             <div class="form-group">
-                <label>Nama Staf:</label>
-                <select name="nama_staf" id="nama_staf" required onchange="fillEmail(this)">
-                    <option value="">-- Sila Pilih Nama Staf --</option>
+                <label>Pilih Nama Staf (Boleh pilih lebih daripada satu):</label>
+                <div class="staff-checkbox-container">
                     <?php
                     try {
                         $stmt = $pdo->query("SELECT nama, email FROM staff ORDER BY nama ASC");
                         while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
-                            echo '<option value="' . htmlspecialchars($row['nama']) . '" data-email="' . htmlspecialchars($row['email']) . '">' . htmlspecialchars($row['nama']) . '</option>';
+                            $nama_attr = htmlspecialchars($row['nama']);
+                            $email_attr = htmlspecialchars($row['email']);
+                            echo '<label class="staff-checkbox-item">
+                                    <input type="checkbox" name="nama_staf[]" value="' . $nama_attr . '" data-email="' . $email_attr . '" onchange="updateEmails()"> ' . $nama_attr . '
+                                  </label>';
                         }
                     } catch (PDOException $e) {
-                        echo '<option value="" disabled>Ralat: ' . $e->getMessage() . '</option>';
+                        echo '<span style="color:red; font-size:0.8rem;">Ralat: ' . $e->getMessage() . '</span>';
                     }
                     ?>
-                </select>
+                </div>
             </div>
             
             <div class="form-group">
-                <label>E-mel Staf:</label>
-                <input type="email" name="email" id="email" required readonly style="background: rgba(255,255,255,0.2); cursor: not-allowed;" placeholder="Akan terpapar secara automatik">
+                <label>E-mel Staf (Auto-popup):</label>
+                <input type="text" name="email" id="email" required readonly style="background: rgba(255,255,255,0.2); cursor: not-allowed;" placeholder="Akan terpapar secara automatik">
             </div>
             
             <div class="form-group">
@@ -211,10 +240,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['tambah_staf_baru'])) 
     </div>
 
     <script>
-        function fillEmail(selectElement) {
-            const selectedOption = selectElement.options[selectElement.selectedIndex];
-            const email = selectedOption.getAttribute('data-email');
-            document.getElementById('email').value = email ? email : '';
+        function updateEmails() {
+            const checkboxes = document.querySelectorAll('input[name="nama_staf[]"]:checked');
+            const emails = [];
+            
+            checkboxes.forEach((checkbox) => {
+                const email = checkbox.getAttribute('data-email');
+                if (email) {
+                    emails.push(email);
+                }
+            });
+            
+            // Gabungkan e-mel dengan tanda koma jika pilih lebih dari satu
+            document.getElementById('email').value = emails.join(', ');
         }
     </script>
 
