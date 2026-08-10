@@ -10,8 +10,8 @@ if (!isset($_SESSION['user_email'])) {
 if (!isset($_GET['id'])) { die("ID tidak sah"); }
 $id = intval($_GET['id']);
 
-// Menggunakan PDO untuk mendapatkan maklumat surat
-$stmt = $pdo->prepare("SELECT * FROM minit_surat WHERE id = ?");
+// Menggunakan senarai kolum lengkap secara eksplisit untuk mengelakkan ralat cache PostgreSQL
+$stmt = $pdo->prepare("SELECT id, no_rujukan, tarikh_terima, daripada, kepada, perkara, perkara_surat, kolej, didaftarkan_oleh, status, fail_surat, tempoh_tindakan, tandatangan_fail, tarikh_disahkan, target_role, catatan, tandatangan, arahan_pilihan, maklum_kepada, tandatangan_data, drive_file_id, arahan, created_at, staf_dimaklumkan, pegawai, salinan_kepada FROM minit_surat WHERE id = ?");
 $stmt->execute([$id]);
 $surat = $stmt->fetch(PDO::FETCH_ASSOC);
 
@@ -48,9 +48,9 @@ if (!$surat) { die("Dokumen tidak ditemui"); }
             background-size: cover;
             background-attachment: fixed;
             background-position: center center;
-            filter: blur(8px); /* Ubah nilai 8px ini jika mahu lebih atau kurang kabur */
-            transform: scale(1.1); /* Mengelakkan kesan putih di tepi akibat blur */
-            z-index: -1; /* Memastikan latar belakang berada di lapisan paling bawah */
+            filter: blur(8px);
+            transform: scale(1.1);
+            z-index: -1;
         }
 
         .container { max-width: 1000px; margin: auto; display: grid; grid-template-columns: 1.2fr 0.8fr; gap: 20px; }
@@ -73,11 +73,9 @@ if (!$surat) { die("Dokumen tidak ditemui"); }
     <div class="panel">
         <h3><i class="fa-solid fa-file-pdf"></i> Dokumen Rujukan</h3>
         <?php 
-        // Logik Paparan Google Drive
         if (!empty($surat['drive_file_id']) && $surat['drive_file_id'] !== 'GAGAL_UPLOAD') {
             echo '<iframe src="https://drive.google.com/file/d/' . htmlspecialchars($surat['drive_file_id']) . '/preview" width="100%" height="600px" style="border:none;"></iframe>';
         } else {
-            // Fallback kepada cara asal jika drive_id tiada
             echo '<iframe src="uploads/' . htmlspecialchars($surat['fail_surat']) . '" width="100%" height="600px" style="border:none;"></iframe>';
         }
         ?>
@@ -108,12 +106,11 @@ if (!$surat) { die("Dokumen tidak ditemui"); }
             </div>
         </div>
 
-        <!-- Kolom Pegawai dan Salinan Kepada -->
-        <label><strong>Pegawai:</strong></label>
-        <input type="text" id="pegawai" placeholder="Masukkan nama pegawai...">
+        <label><strong>Pegawai (Tindakan kepada):</strong></label>
+        <input type="text" id="pegawai" value="<?= htmlspecialchars($surat['pegawai'] ?? '') ?>" placeholder="Masukkan nama pegawai...">
 
-        <label><strong>Salinan Kepada:</strong></label>
-        <input type="text" id="salinan_kepada" placeholder="Masukkan nama pihak berkaitan...">
+        <label><strong>Salinan Kepada (U.P / CC):</strong></label>
+        <input type="text" id="salinan_kepada" value="<?= htmlspecialchars($surat['salinan_kepada'] ?? '') ?>" placeholder="Masukkan nama pihak berkaitan...">
 
         <p>Sila turunkan tandatangan digital di bawah:</p>
         <canvas id="signature-pad"></canvas>
