@@ -109,10 +109,10 @@ if (!$surat) { die("Dokumen tidak ditemui"); }
         </div>
 
         <!-- Kolom Pegawai dan Salinan Kepada -->
-        <label><strong>Pegawai (Tindakan kepada):</strong></label>
+        <label><strong>Pegawai:</strong></label>
         <input type="text" id="pegawai" placeholder="Masukkan nama pegawai...">
 
-        <label><strong>Salinan Kepada (U.P / CC):</strong></label>
+        <label><strong>Salinan Kepada:</strong></label>
         <input type="text" id="salinan_kepada" placeholder="Masukkan nama pihak berkaitan...">
 
         <p>Sila turunkan tandatangan digital di bawah:</p>
