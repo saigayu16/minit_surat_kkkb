@@ -173,7 +173,7 @@
 
 <div class="main-welcome">
     <div class="logo-container-center">
-        <img src="logokkkb.png" alt="Logo Kolej Komuniti" class="logo-kolej-besar">
+        <img src="logokkkb.jpg" alt="Logo Kolej Komuniti" class="logo-kolej-besar">
     </div>
 
     <h1 class="welcome-title">Selamat Datang ke Laman Minit Surat!</h1>
