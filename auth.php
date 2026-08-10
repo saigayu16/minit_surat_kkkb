@@ -18,8 +18,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             $stmt->execute([$username, $role]);
             $user = $stmt->fetch(PDO::FETCH_ASSOC);
 
-            // Gunakan password_verify() kerana kata laluan semasa daftar di-hash
-            if ($user && password_verify($password, $user['password'])) {
+            // Semak kata laluan dalam bentuk teks biasa (plain text)
+            if ($user && $password === $user['password']) {
                 session_regenerate_id(true);
 
                 // Set session variables
@@ -48,12 +48,11 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 }
                 exit();
             } else {
-                // Gagal log masuk (salah nama pengguna, kata laluan, atau peranan)
+                // Gagal log masuk
                 header("Location: login.php?error=1");
                 exit();
             }
         } catch (PDOException $e) {
-            // Paparkan ralat jika berlaku isu database
             die("Ralat Log Masuk: " . $e->getMessage());
         }
     } else {
