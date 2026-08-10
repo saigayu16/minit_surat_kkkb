@@ -9,7 +9,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['tambah_staf_baru'])) 
 
     if (!empty($nama_baru) && !empty($email_baru)) {
         try {
-            // Semak jika e-mel sudah wujud
             $stmt_check = $pdo->prepare("SELECT id FROM staff WHERE email = ?");
             $stmt_check->execute([$email_baru]);
             
@@ -17,7 +16,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['tambah_staf_baru'])) 
                 echo "<script>alert('Ralat: E-mel staf ini sudah wujud dalam pangkalan data!'); window.location.href='?id=" . htmlspecialchars($id) . "';</script>";
                 exit;
             } else {
-                // Masukkan ke dalam database
                 $stmt_insert = $pdo->prepare("INSERT INTO staff (nama, email) VALUES (?, ?)");
                 $stmt_insert->execute([$nama_baru, $email_baru]);
                 
@@ -27,6 +25,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['tambah_staf_baru'])) 
         } catch (PDOException $e) {
             echo "<script>alert('Ralat Database: " . addslashes($e->getMessage()) . "');</script>";
         }
+    }
+}
+
+// Proses padam staf
+if (isset($_GET['padam_id'])) {
+    $padam_id = $_GET['padam_id'];
+    try {
+        $stmt_delete = $pdo->prepare("DELETE FROM staff WHERE id = ?");
+        $stmt_delete->execute([$padam_id]);
+        
+        echo "<script>alert('Staf berjaya dipadam dari database!'); window.location.href='?id=" . htmlspecialchars($id) . "';</script>";
+        exit;
+    } catch (PDOException $e) {
+        echo "<script>alert('Ralat Database: " . addslashes($e->getMessage()) . "'); window.location.href='?id=" . htmlspecialchars($id) . "';</script>";
+        exit;
     }
 }
 ?>
@@ -99,7 +112,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['tambah_staf_baru'])) 
             font-size: 0.9rem;
         }
 
-        /* Kotak senarai semak staf pelbagai pilihan */
         .staff-checkbox-container {
             max-height: 140px;
             overflow-y: auto;
@@ -113,17 +125,37 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['tambah_staf_baru'])) 
         .staff-checkbox-item {
             display: flex;
             align-items: center;
-            gap: 8px;
+            justify-content: space-between;
             margin-bottom: 6px;
             font-size: 0.85rem;
             color: #5d4037;
+        }
+
+        .staff-left {
+            display: flex;
+            align-items: center;
+            gap: 8px;
             cursor: pointer;
+            flex-grow: 1;
         }
 
         .staff-checkbox-item input[type="checkbox"] {
             width: auto;
             cursor: pointer;
         }
+
+        .btn-delete-staff {
+            background: #e53935;
+            color: white;
+            border: none;
+            border-radius: 3px;
+            padding: 3px 6px;
+            font-size: 0.75rem;
+            cursor: pointer;
+            text-decoration: none;
+            transition: 0.2s;
+        }
+        .btn-delete-staff:hover { background: #c62828; }
 
         button { 
             width: 100%; 
@@ -205,13 +237,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['tambah_staf_baru'])) 
                 <div class="staff-checkbox-container">
                     <?php
                     try {
-                        $stmt = $pdo->query("SELECT nama, email FROM staff ORDER BY nama ASC");
+                        // Pastikan kolum 'id' turut dipilih untuk proses padam
+                        $stmt = $pdo->query("SELECT id, nama, email FROM staff ORDER BY nama ASC");
                         while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+                            $staff_id = $row['id'];
                             $nama_attr = htmlspecialchars($row['nama']);
                             $email_attr = htmlspecialchars($row['email']);
-                            echo '<label class="staff-checkbox-item">
-                                    <input type="checkbox" name="nama_staf[]" value="' . $nama_attr . '" data-email="' . $email_attr . '" onchange="updateEmails()"> ' . $nama_attr . '
-                                  </label>';
+                            
+                            echo '<div class="staff-checkbox-item">
+                                    <label class="staff-left">
+                                        <input type="checkbox" name="nama_staf[]" value="' . $nama_attr . '" data-email="' . $email_attr . '" onchange="updateEmails()"> ' . $nama_attr . '
+                                    </label>
+                                    <a href="?id=' . htmlspecialchars($id) . '&padam_id=' . $staff_id . '" class="btn-delete-staff" onclick="return confirm(\'Adakah anda pasti mahu memadam staf ' . $nama_attr . '?\')"><i class="fa-solid fa-trash"></i></a>
+                                  </div>';
                         }
                     } catch (PDOException $e) {
                         echo '<span style="color:red; font-size:0.8rem;">Ralat: ' . $e->getMessage() . '</span>';
@@ -251,7 +289,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['tambah_staf_baru'])) 
                 }
             });
             
-            // Gabungkan e-mel dengan tanda koma jika pilih lebih dari satu
             document.getElementById('email').value = emails.join(', ');
         }
     </script>
