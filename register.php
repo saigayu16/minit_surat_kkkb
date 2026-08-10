@@ -8,13 +8,13 @@ include('db.php'); // Memasukkan fail sambungan PDO
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $username = trim($_POST['username'] ?? '');
     $email    = trim($_POST['email'] ?? '');
-    $password = password_hash($_POST['password'] ?? '', PASSWORD_DEFAULT); // Selamatkan kata laluan
+    $password = password_hash($_POST['password'] ?? '', PASSWORD_DEFAULT); 
     $role     = $_POST['role'] ?? '';
 
     if (!empty($username) && !empty($email) && !empty($_POST['password']) && !empty($role)) {
         try {
-            // Masukkan lajur email ke dalam query INSERT
-            $stmt = $pdo->prepare("INSERT INTO users (username, email, password, role) VALUES (?, ?, ?, ?)");
+            // Gunakan \"role\" kerana 'role' adalah kata kunci rizab dalam PostgreSQL
+            $stmt = $pdo->prepare("INSERT INTO users (username, email, password, \"role\") VALUES (?, ?, ?, ?)");
             $stmt->execute([$username, $email, $password, $role]);
 
             echo "<script>alert('Pendaftaran berjaya!'); window.location='login.php';</script>";
