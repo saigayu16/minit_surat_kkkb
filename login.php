@@ -246,7 +246,7 @@ if (isset($_SESSION['user_logged_in']) && $_SESSION['user_logged_in'] === true) 
 <body>
     <div class="login-card">
         <div class="logo-container">
-            <img src="logokkkb.png" alt="Logo Kolej" class="logo-kolej">
+            <img src="logokkkb.jpg" alt="Logo Kolej" class="logo-kolej">
         </div>
 
         <h2>Log Masuk</h2>
