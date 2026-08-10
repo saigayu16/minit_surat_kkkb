@@ -1,14 +1,13 @@
 <?php 
 ob_start();
 session_start();
-include('db.php'); // Menjangkakan sambungan menggunakan $pdo
+include('db.php'); 
 
 if (!isset($_GET['id']) || empty($_GET['id'])) { die("ID Dokumen tidak sah."); }
 
 $id = intval($_GET['id']);
 
-// Menggunakan PDO prepared statement dengan senarai kolum penuh secara eksplisit untuk PostgreSQL
-$stmt = $pdo->prepare("SELECT id, no_rujukan, tarikh_terima, daripada, kepada, perkara, perkara_surat, kolej, didaftarkan_oleh, status, fail_surat, tempoh_tindakan, tandatangan_fail, tarikh_disahkan, target_role, catatan, tandatangan, arahan_pilihan, maklum_kepada, tandatangan_data, drive_file_id, arahan, created_at, staf_dimaklumkan FROM minit_surat WHERE id = ?");
+$stmt = $pdo->prepare("SELECT id, no_rujukan, tarikh_terima, daripada, kepada, perkara, perkara_surat, kolej, didaftarkan_oleh, status, fail_surat, tempoh_tindakan, tandatangan_fail, tarikh_disahkan, target_role, catatan, tandatangan, arahan_pilihan, maklum_kepada, tandatangan_data, drive_file_id, arahan, created_at, staf_dimaklumkan, pegawai, salinan_kepada FROM minit_surat WHERE id = ?");
 $stmt->execute([$id]);
 $row = $stmt->fetch(PDO::FETCH_ASSOC);
 
@@ -22,6 +21,8 @@ $daripada = htmlspecialchars($row['daripada'] ?? '-');
 $didaftarkan_oleh = htmlspecialchars($row['didaftarkan_oleh'] ?? 'Admin');
 $catatan = !empty($row['catatan']) ? nl2br(htmlspecialchars($row['catatan'])) : '<em>Tiada catatan diberikan.</em>';
 $arahan = htmlspecialchars($row['arahan_pilihan'] ?? 'TIADA ARAHAN');
+$pegawai = htmlspecialchars($row['pegawai'] ?? '-');
+$salinan_kepada = htmlspecialchars($row['salinan_kepada'] ?? '-');
 $tarikh_sah = !empty($row['tarikh_disahkan']) ? date('d/m/Y', strtotime($row['tarikh_disahkan'])) : (!empty($row['tarikh_sah']) ? date('d/m/Y', strtotime($row['tarikh_sah'])) : date('d/m/Y'));
 $signature_data = $row['tandatangan'] ?? ''; 
 ?>
@@ -30,36 +31,16 @@ $signature_data = $row['tandatangan'] ?? '';
 <html lang="ms">
 <head>
     <meta charset="UTF-8">
-    <title>Borang Minit Rasmi - <?= $no_rujukan ?></title>
+    <title>Kertas Minit - <?= $no_rujukan ?></title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        /* Background Image Setting */
-        body { 
-            margin: 0; 
-            padding: 20px; 
-            font-family: 'Segoe UI', sans-serif; 
-            position: relative;
-            overflow-x: hidden;
-            min-height: 100vh;
-            box-sizing: border-box;
-        }
+        body { margin: 0; padding: 20px; font-family: 'Segoe UI', sans-serif; position: relative; overflow-x: hidden; min-height: 100vh; box-sizing: border-box; }
 
-        /* Lapisan khas untuk imej latar belakang dengan kesan blur */
         body::before {
-            content: '';
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-image: url('daftarsurat.jpg'); 
-            background-size: cover; 
-            background-position: center; 
-            background-attachment: fixed; 
-            background-repeat: no-repeat;
-            filter: blur(8px);
-            transform: scale(1.1);
-            z-index: -1;
+            content: ''; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background-image: url('daftarsurat.jpg'); background-size: cover; background-position: center; 
+            background-attachment: fixed; background-repeat: no-repeat; filter: blur(8px);
+            transform: scale(1.1); z-index: -1;
         }
          
         .page-box { 
@@ -69,18 +50,19 @@ $signature_data = $row['tandatangan'] ?? '';
             min-height: 297mm; position: relative; box-sizing: border-box;
         }
          
-        .header-title { font-size: 24px; font-weight: 800; color: #1e293b; border-bottom: 3px solid #1e293b; padding-bottom: 10px; margin-bottom: 20px; text-transform: uppercase; }
+        .header-title { font-size: 26px; font-weight: 800; color: #1e293b; text-align: center; text-transform: uppercase; margin-bottom: 5px; }
+        .office-header { font-size: 18px; font-weight: 700; color: #1e293b; text-align: center; margin-bottom: 25px; border-bottom: 2px solid #1e293b; padding-bottom: 15px; }
          
         .sticky-note { 
             background: #fffbeb; padding: 25px; border-radius: 4px; border-left: 10px solid #f59e0b; 
-            box-shadow: 5px 5px 15px rgba(0,0,0,0.1); margin: 30px 0; position: relative;
+            box-shadow: 5px 5px 15px rgba(0,0,0,0.1); margin: 20px 0; position: relative;
         }
         .sticky-note::after { content: "PENTING"; position: absolute; top: 10px; right: 10px; font-size: 10px; color: #b45309; font-weight: bold; }
         .arahan-badge { background: #f59e0b; color: #fff; padding: 4px 12px; border-radius: 4px; font-size: 12px; font-weight: bold; margin-bottom: 10px; display: inline-block; }
 
         .stamp-box { 
             border: 3px solid #1e293b; padding: 15px; width: 220px; text-align: center; 
-            float: right; margin-top: 40px; background: #fff; position: relative;
+            float: right; margin-top: 40px; background: #fff; position: relative; clear: both;
         }
         .stamp-box::before { content: "TANDATANGAN RASMI"; position: absolute; top: -12px; background: white; padding: 0 5px; font-size: 9px; font-weight: bold; color: #1e293b; }
         .sig-image { max-height: 60px; display: block; margin: 0 auto 5px auto; }
@@ -97,7 +79,8 @@ $signature_data = $row['tandatangan'] ?? '';
 <body>
 
 <div class="page-box">
-    <div class="header-title">Borang Minit Ceraian</div>
+    <div class="header-title">Kertas Minit</div>
+    <div class="office-header">PEJABAT PENGARAH<br>KOLEJ KOMUNITI KEPALA BATAS</div>
      
     <table width="100%" cellpadding="10" border="0" style="border-collapse: collapse; margin-bottom: 20px;">
         <tr>
@@ -107,6 +90,10 @@ $signature_data = $row['tandatangan'] ?? '';
         <tr>
             <td style="border: 1px solid #e2e8f0;"><strong>Daripada:</strong><br><?= $daripada ?></td>
             <td style="border: 1px solid #e2e8f0;"><strong>Didaftarkan Oleh:</strong><br><?= $didaftarkan_oleh ?></td>
+        </tr>
+        <tr>
+            <td style="border: 1px solid #e2e8f0;"><strong>Pegawai:</strong><br><?= $pegawai ?></td>
+            <td style="border: 1px solid #e2e8f0;"><strong>Salinan Kepada:</strong><br><?= $salinan_kepada ?></td>
         </tr>
     </table>
 
