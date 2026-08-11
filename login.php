@@ -1,7 +1,7 @@
 <?php
 session_start();
 
-// 1. If already logged in, redirect
+// 1. Jika sudah log masuk, alihkan ke halaman utama mengikut peranan
 if (isset($_SESSION['user_logged_in']) && $_SESSION['user_logged_in'] === true) {
     $role = $_SESSION['user_role'] ?? '';
     
@@ -16,12 +16,6 @@ if (isset($_SESSION['user_logged_in']) && $_SESSION['user_logged_in'] === true) 
     exit;
 }
 ?>
-
-<!-- 2. Error handling snippet -->
-<?php if(isset($_GET['error'])): ?>
-    <script>alert('Nama pengguna, kata laluan, atau peranan salah!');</script>
-<?php endif; ?>
-
 <!DOCTYPE html>
 <html lang="ms">
 <head>
@@ -121,7 +115,6 @@ if (isset($_SESSION['user_logged_in']) && $_SESSION['user_logged_in'] === true) 
             text-align: left; 
         }
 
-        /* Ikon kiri di dalam input */
         .input-group > i:not(.toggle-password) { 
             position: absolute; 
             left: 14px; 
@@ -133,7 +126,6 @@ if (isset($_SESSION['user_logged_in']) && $_SESSION['user_logged_in'] === true) 
             transition: color 0.3s;
         }
 
-        /* Ikon mata untuk togol kata laluan di sebelah kanan */
         .toggle-password {
             position: absolute;
             right: 14px;
@@ -166,7 +158,6 @@ if (isset($_SESSION['user_logged_in']) && $_SESSION['user_logged_in'] === true) 
             -moz-appearance: none;
         }
 
-        /* Input biasa tanpa ikon kanan (seperti nama pengguna) saiz padding kanan berbeza */
         input[name="username"] {
             padding-right: 12px;
         }
@@ -278,17 +269,22 @@ if (isset($_SESSION['user_logged_in']) && $_SESSION['user_logged_in'] === true) 
         </form>
     </div>
 
+    <!-- Paparan Ralat JavaScript jika login gagal -->
+    <?php if(isset($_GET['error'])): ?>
+        <script>
+            alert('Nama pengguna, kata laluan, atau peranan salah!');
+        </script>
+    <?php endif; ?>
+
     <!-- Skrip JavaScript untuk Kawal Eye On/Off -->
     <script>
         const togglePassword = document.querySelector('#toggleLoginPassword');
         const password = document.querySelector('#login-password');
 
         togglePassword.addEventListener('click', function () {
-            // Tukar jenis input daripada password kepada text
             const type = password.getAttribute('type') === 'password' ? 'text' : 'password';
             password.setAttribute('type', type);
             
-            // Tukar ikon mata (fa-eye <-> fa-eye-slash)
             this.classList.toggle('fa-eye');
             this.classList.toggle('fa-eye-slash');
         });
