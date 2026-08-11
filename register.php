@@ -1,25 +1,19 @@
 <?php
-error_reporting(E_ALL);
-ini_set('display_errors', 1);
-
-include('db.php');
-
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-    $username = trim($_POST['username'] ?? '');
-    $email    = trim($_POST['email'] ?? '');
-    $password = $_POST['password'] ?? ''; // Disimpan dalam bentuk teks biasa (plain text)
-    $role     = $_POST['role'] ?? '';
+    include('db.php');
+    
+    $username = trim($_POST['username']);
+    $password = $_POST['password']; 
+    $role     = $_POST['role'];
 
-    try {
-        $stmt = $pdo->prepare("INSERT INTO users (username, email, password, \"role\") VALUES (?, ?, ?, ?)");
-        $stmt->execute([$username, $email, $password, $role]);
-        
-        // Terus redirect ke halaman login.php selepas berjaya daftar
-        header("Location: login.php");
-        exit();
-        
-    } catch (PDOException $e) {
-        echo "Ralat Database: " . $e->getMessage();
+    $stmt = $conn->prepare("INSERT INTO users (username, password, role) VALUES (?, ?, ?)");
+    $stmt->bind_param("sss", $username, $password, $role);
+
+    if ($stmt->execute()) {
+        echo "<script>alert('Pendaftaran berjaya!'); window.location='login.php';</script>";
+        exit;
+    } else {
+        echo "<script>alert('Ralat: " . addslashes($conn->error) . "');</script>";
     }
 }
 ?>
@@ -59,7 +53,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             display: flex;
             justify-content: center;
             align-items: center;
-            min-height: 100vh;
+            height: 100vh;
         }
 
         .register-card { 
@@ -73,7 +67,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             border: 1px solid var(--border-color); 
             text-align: center;
             position: relative;
-            margin: 20px 0;
         }
 
         .register-card::before {
@@ -231,21 +224,16 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
 <div class="register-card">
     <div class="logo-container">
-        <img src="logokkkb.jpg" alt="Logo Kolej" class="logo-kolej">
+        <img src="logokkkb.png" alt="Logo Kolej" class="logo-kolej">
     </div>
 
     <h2>Daftar Pengguna</h2>
     <p class="subtitle">Sila lengkapkan maklumat akaun baharu</p>
     
-    <form method="POST" action="">
+    <form method="POST">
         <div class="input-group">
             <i class="fa-solid fa-user"></i>
             <input type="text" name="username" placeholder="Nama Pengguna" required>
-        </div>
-
-        <div class="input-group">
-            <i class="fa-solid fa-envelope"></i>
-            <input type="email" name="email" placeholder="Alamat Emel" required>
         </div>
         
         <div class="input-group">
@@ -289,3 +277,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
 </body>
 </html>
+
+
+
