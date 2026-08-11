@@ -3,22 +3,17 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     include('db.php');
     
     $username = trim($_POST['username']);
-    $password_plain = $_POST['password']; 
+    $password = $_POST['password']; 
     $role     = $_POST['role'];
 
-    // 1. Hash kata laluan untuk keselamatan data dalam database
-    $hashed_password = password_hash($password_plain, PASSWORD_DEFAULT);
+    $stmt = $conn->prepare("INSERT INTO users (username, password, role) VALUES (?, ?, ?)");
+    $stmt->bind_param("sss", $username, $password, $role);
 
-    try {
-        // 2. Masukkan $hashed_password menggantikan password biasa
-        $stmt = $pdo->prepare("INSERT INTO users (username, password, \"role\") VALUES (?, ?, ?)");
-        
-        if ($stmt->execute([$username, $hashed_password, $role])) {
-            echo "<script>alert('Pendaftaran berjaya!'); window.location='login.php';</script>";
-            exit;
-        }
-    } catch (PDOException $e) {
-        echo "<script>alert('Ralat: " . addslashes($e->getMessage()) . "');</script>";
+    if ($stmt->execute()) {
+        echo "<script>alert('Pendaftaran berjaya!'); window.location='login.php';</script>";
+        exit;
+    } else {
+        echo "<script>alert('Ralat: " . addslashes($conn->error) . "');</script>";
     }
 }
 ?>
