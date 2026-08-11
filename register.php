@@ -6,14 +6,16 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $password = $_POST['password']; 
     $role     = $_POST['role'];
 
-    $stmt = $conn->prepare("INSERT INTO users (username, password, role) VALUES (?, ?, ?)");
-    $stmt->bind_param("sss", $username, $password, $role);
-
-    if ($stmt->execute()) {
-        echo "<script>alert('Pendaftaran berjaya!'); window.location='login.php';</script>";
-        exit;
-    } else {
-        echo "<script>alert('Ralat: " . addslashes($conn->error) . "');</script>";
+    try {
+        // Guna $pdo dan masukkan tanda petik dua pada "role" (reserved keyword dalam PostgreSQL)
+        $stmt = $pdo->prepare("INSERT INTO users (username, password, \"role\") VALUES (?, ?, ?)");
+        
+        if ($stmt->execute([$username, $password, $role])) {
+            echo "<script>alert('Pendaftaran berjaya!'); window.location='login.php';</script>";
+            exit;
+        }
+    } catch (PDOException $e) {
+        echo "<script>alert('Ralat: " . addslashes($e->getMessage()) . "');</script>";
     }
 }
 ?>
