@@ -5,21 +5,22 @@ ini_set('display_errors', 1);
 include('db.php');
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-    echo "1. Borang berjaya dihantar!<br>";
-    
     $username = trim($_POST['username'] ?? '');
     $email    = trim($_POST['email'] ?? '');
-    $password = $_POST['password'] ?? '';
+    $password = $_POST['password'] ?? ''; // Disimpan dalam bentuk teks biasa (plain text)
     $role     = $_POST['role'] ?? '';
 
     try {
         $stmt = $pdo->prepare("INSERT INTO users (username, email, password, \"role\") VALUES (?, ?, ?, ?)");
         $stmt->execute([$username, $email, $password, $role]);
-        echo "2. Berjaya simpan dalam database!";
+        
+        // Terus redirect ke halaman login.php selepas berjaya daftar
+        header("Location: login.php");
+        exit();
+        
     } catch (PDOException $e) {
-        echo "2. Ralat Database: " . $e->getMessage();
+        echo "Ralat Database: " . $e->getMessage();
     }
-    exit();
 }
 ?>
 <!DOCTYPE html>
