@@ -230,7 +230,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
 <div class="register-card">
     <div class="logo-container">
-        <img src="logokkkb.png" alt="Logo Kolej" class="logo-kolej">
+        <img src="logokkkb.jpg" alt="Logo Kolej" class="logo-kolej">
     </div>
 
     <h2>Daftar Pengguna</h2>
