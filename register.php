@@ -3,14 +3,17 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     include('db.php');
     
     $username = trim($_POST['username']);
-    $password = $_POST['password']; 
+    $password_plain = $_POST['password']; 
     $role     = $_POST['role'];
 
+    // 1. Hash kata laluan untuk keselamatan data dalam database
+    $hashed_password = password_hash($password_plain, PASSWORD_DEFAULT);
+
     try {
-        // Guna $pdo dan masukkan tanda petik dua pada "role" (reserved keyword dalam PostgreSQL)
+        // 2. Masukkan $hashed_password menggantikan password biasa
         $stmt = $pdo->prepare("INSERT INTO users (username, password, \"role\") VALUES (?, ?, ?)");
         
-        if ($stmt->execute([$username, $password, $role])) {
+        if ($stmt->execute([$username, $hashed_password, $role])) {
             echo "<script>alert('Pendaftaran berjaya!'); window.location='login.php';</script>";
             exit;
         }
