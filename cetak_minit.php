@@ -54,7 +54,7 @@ if ($role === 'tpp') {
 
 // 3. Logik apabila butang 'Save to Spreadsheet' ditekan
 if (isset($_POST['save_spreadsheet'])) {
-    $url_google_script = "https://script.google.com/macros/s/AKfycbwfYyFrdbeh-IoWKsOVOmZ3M7drqRT6fJ7hXXNvzoU4tUA09wKr82cnUa-LD6fe1Ret/exec"; 
+    $url_google_script = "https://script.google.com/macros/s/AKfycbw0bXZoRyqg_I9BYKnTwB4X3Y92S4QeChp_68wfsl8qCkE_JDWmkG1SgR-1hoF0PKBp/exec"; 
 
     $data_to_send = [
         'no_rujukan'       => $no_rujukan,
