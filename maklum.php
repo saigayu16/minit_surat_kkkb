@@ -419,10 +419,9 @@ if (isset($_GET['padam_id'])) {
                 // URL Google Apps Script Web App anda
                 const scriptURL = 'https://script.google.com/macros/s/AKfycbylxBpnZK060-gZOlw3X1kdBwa8ztugapiWSkUe9uISfR03Y1bMPUTvwsRnKVShLN9diA/exec'; 
                 
-                // Hantar fail ke Google Drive secara senyap di latar belakang
-                await fetch(scriptURL, {
+                // Hantar fail ke Google Drive (Tanpa no-cors supaya data payload sampai dengan sempurna)
+                const response = await fetch(scriptURL, {
                     method: 'POST',
-                    mode: 'no-cors', // Penting untuk elak ralat CORS dengan Google Apps Script
                     body: JSON.stringify({
                         action: 'mergeAndUpload',
                         suratId: '<?= htmlspecialchars($id) ?>',
@@ -430,8 +429,14 @@ if (isset($_GET['padam_id'])) {
                     })
                 });
 
-                // Selepas selesai hantar ke Drive, sambung proses PHP asal (hantar emel/simpan log)
-                document.getElementById('maklumanForm').submit();
+                const result = await response.json();
+
+                if (result.status === "SUCCESS") {
+                    // Selepas selesai hantar ke Drive, sambung proses PHP asal (hantar emel/simpan log)
+                    document.getElementById('maklumanForm').submit();
+                } else {
+                    throw new Error(result.message || 'Gagal menyimpan fail ke Drive.');
+                }
 
             } catch (error) {
                 console.error(error);
