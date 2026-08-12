@@ -17,8 +17,11 @@ if (!$row) { die("Rekod tidak ditemui."); }
 // Data Formatting
 $status = strtoupper(trim($row['status'] ?? 'TIADA STATUS'));
 $no_rujukan = htmlspecialchars($row['no_rujukan'] ?? '-');
+$no_fail = htmlspecialchars($row['no_fail'] ?? '-'); // Jika ada kolum no_fail, jika tiada boleh diubah
+$tarikh_surat = !empty($row['tarikh_surat']) ? date('d/m/Y', strtotime($row['tarikh_surat'])) : '-';
 $tarikh_terima = !empty($row['tarikh_terima']) ? date('d/m/Y', strtotime($row['tarikh_terima'])) : '-';
 $daripada = htmlspecialchars($row['daripada'] ?? '-');
+$kepada = htmlspecialchars($row['target_role'] ?? '-');
 $perkara = htmlspecialchars($row['perkara'] ?? '-'); 
 $didaftarkan_oleh = htmlspecialchars($row['didaftarkan_oleh'] ?? 'Admin');
 $catatan = !empty($row['catatan']) ? nl2br(htmlspecialchars($row['catatan'])) : '<em>Tiada catatan diberikan.</em>';
@@ -38,7 +41,6 @@ $role = strtolower(trim($row['user_role'] ?? $row['target_role'] ?? ''));
 $nama_pejabat = "PEJABAT PENGARAH<br>KOLEJ KOMUNITI KEPALA BATAS";
 $gelaran_tandatangan = "PENGARAH";
 
-// Logik dinamik berdasarkan nilai role di database: 'tpa', 'tpp', 'pengarah'
 if ($role === 'tpp') {
     $nama_pejabat = "PEJABAT TIMBALAN PENGARAH<br>KOLEJ KOMUNITI KEPALA BATAS";
     $gelaran_tandatangan = "TIMBALAN PENGARAH (PENGURUSAN)";
@@ -56,6 +58,7 @@ if (isset($_POST['save_spreadsheet'])) {
 
     $data_to_send = [
         'no_rujukan'       => $no_rujukan,
+        'tarikh_surat'     => $tarikh_surat,
         'perkara'          => $perkara,
         'daripada'         => $daripada,
         'arahan'           => $arahan,
@@ -104,7 +107,6 @@ if (isset($_POST['save_spreadsheet'])) {
         .office-header { font-size: 16px; font-weight: 700; color: #1e293b; text-align: center; margin-bottom: 10px; line-height: 1.5; }
         
         .perkara-container {
-            text-align: center;
             margin-bottom: 25px;
             padding-bottom: 15px;
             border-bottom: 2px solid #1e293b;
@@ -112,7 +114,7 @@ if (isset($_POST['save_spreadsheet'])) {
         .perkara-title {
             font-size: 13px;
             font-weight: 700;
-            color: #64748b;
+            color: #1e293b;
             text-transform: uppercase;
             margin-bottom: 4px;
         }
@@ -151,24 +153,29 @@ if (isset($_POST['save_spreadsheet'])) {
 <div class="page-box">
     <div class="header-title">Kertas Minit</div>
     <div class="office-header"><?= $nama_pejabat ?></div>
+    <hr style="border: 1px solid #1e293b; margin-bottom: 25px;">
     
     <div class="perkara-container">
-        <div class="perkara-title">Perkara / Tajuk Surat:</div>
+        <div class="perkara-title">PERKARA :</div>
         <div class="perkara-text" id="surat-perkara"><?= $perkara ?></div>
     </div>
      
     <table width="100%" cellpadding="10" border="0" style="border-collapse: collapse; margin-bottom: 20px;">
         <tr>
-            <td width="50%" style="border: 1px solid #e2e8f0;"><strong>No. Rujukan:</strong><br><?= $no_rujukan ?></td>
-            <td width="50%" style="border: 1px solid #e2e8f0;"><strong>Tarikh Terima:</strong><br><?= $tarikh_terima ?></td>
+            <td width="50%" style="border: 1px solid #cbd5e1;"><strong>No Rujukan Surat:</strong><br><?= $no_rujukan ?></td>
+            <td width="50%" style="border: 1px solid #cbd5e1;"><strong>Tarikh Surat:</strong><br><?= $tarikh_surat ?></td>
         </tr>
         <tr>
-            <td style="border: 1px solid #e2e8f0;"><strong>Daripada:</strong><br><?= $daripada ?></td>
-            <td style="border: 1px solid #e2e8f0;"><strong>Didaftarkan Oleh:</strong><br><?= $didaftarkan_oleh ?></td>
+            <td style="border: 1px solid #cbd5e1;"><strong>No Fail:</strong><br><?= $no_fail ?></td>
+            <td style="border: 1px solid #cbd5e1;"><strong>Tarikh Terima Surat:</strong><br><?= $tarikh_terima ?></td>
         </tr>
         <tr>
-            <td width="50%" style="border: 1px solid #e2e8f0;"><strong>Pegawai:</strong><br><?= $pegawai ?></td>
-            <td width="50%" style="border: 1px solid #e2e8f0;"><strong>Salinan Kepada:</strong><br><?= $salinan_kepada ?></td>
+            <td style="border: 1px solid #cbd5e1;"><strong>Daripada:</strong><br><?= $daripada ?></td>
+            <td style="border: 1px solid #cbd5e1;"><strong>Kepada:</strong><br><?= strtoupper($kepada) ?></td>
+        </tr>
+        <tr>
+            <td style="border: 1px solid #cbd5e1; border-top: none;">&nbsp;</td>
+            <td style="border: 1px solid #cbd5e1;"><strong>Salinan Kepada:</strong><br><?= $salinan_kepada ?></td>
         </tr>
     </table>
 
@@ -205,14 +212,9 @@ if (isset($_POST['save_spreadsheet'])) {
 
 <script>
 function cetakPDFDinamik() {
-    // Ambil teks dari elemen perkara dan buang tag HTML jika ada
     var elemenPerkara = document.getElementById('surat-perkara');
     var tajukSurat = elemenPerkara ? elemenPerkara.innerText.trim() : "Kertas_Minit";
-    
-    // Tukar tajuk dokumen sementara supaya pelayar (browser) mencadangkan nama ini apabila "Save as PDF" dipilih
     document.title = tajukSurat;
-    
-    // Buka dialog cetak pelayar
     window.print();
 }
 </script>
