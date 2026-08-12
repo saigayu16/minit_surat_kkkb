@@ -414,7 +414,7 @@ if (isset($_GET['padam_id'])) {
                 });
 
                 // URL Google Apps Script Web App anda
-                const scriptURL = 'https://script.google.com/macros/s/AKfycby2K31kMjzReZQU6YK63GGScf3RuLWbp8LrU2YRecHuv4FGx3VtJsKcXD6mbujL5w7j7w/exec'; 
+                const scriptURL = 'https://script.google.com/macros/s/AKfycbylxBpnZK060-gZOlw3X1kdBwa8ztugapiWSkUe9uISfR03Y1bMPUTvwsRnKVShLN9diA/exec'; 
                 
                 // Hantar fail ke Google Drive secara senyap di latar belakang
                 await fetch(scriptURL, {
