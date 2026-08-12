@@ -17,7 +17,7 @@ if (!$row) { die("Rekod tidak ditemui."); }
 // Data Formatting
 $status = strtoupper(trim($row['status'] ?? 'TIADA STATUS'));
 $no_rujukan = htmlspecialchars($row['no_rujukan'] ?? '-');
-$no_fail = htmlspecialchars($row['no_fail'] ?? '-'); // Jika ada kolum no_fail, jika tiada boleh diubah
+$no_fail = htmlspecialchars($row['no_fail'] ?? '-'); 
 $tarikh_surat = !empty($row['tarikh_surat']) ? date('d/m/Y', strtotime($row['tarikh_surat'])) : '-';
 $tarikh_terima = !empty($row['tarikh_terima']) ? date('d/m/Y', strtotime($row['tarikh_terima'])) : '-';
 $daripada = htmlspecialchars($row['daripada'] ?? '-');
@@ -54,17 +54,17 @@ if ($role === 'tpp') {
 
 // 3. Logik apabila butang 'Save to Spreadsheet' ditekan
 if (isset($_POST['save_spreadsheet'])) {
-    $url_google_script = "https://script.google.com/macros/s/AKfycbw0bXZoRyqg_I9BYKnTwB4X3Y92S4QeChp_68wfsl8qCkE_JDWmkG1SgR-1hoF0PKBp/exec"; 
+    $url_google_script = "https://script.google.com/macros/s/AKfycbwfYyFrdbeh-IoWKsOVOmZ3M7drqRT6fJ7hXXNvzoU4tUA09wKr82cnUa-LD6fe1Ret/exec"; 
 
     $data_to_send = [
-        'no_rujukan'       => $no_rujukan,
-        'tarikh_surat'     => $tarikh_surat,
-        'perkara'          => $perkara,
-        'daripada'         => $daripada,
-        'arahan'           => $arahan,
-        'pegawai'          => $pegawai,
-        'salinan_kepada'   => $salinan_kepada,
-        'didaftarkan_oleh' => $didaftarkan_oleh
+        'tarikh_penerimaan' => $tarikh_terima,
+        'no_surat'          => $no_rujukan,
+        'no_fail'           => $no_fail,
+        'tarikh_surat'      => $tarikh_surat,
+        'daripada_siapa'    => $daripada,
+        'perkara'           => $perkara,
+        'dirujuk_kepada'    => strtoupper($kepada),
+        'terima_daripada'   => $didaftarkan_oleh
     ];
 
     $ch = curl_init($url_google_script);
