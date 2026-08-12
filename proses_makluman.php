@@ -1,4 +1,7 @@
-<?php 
+<?php
+ini_set('display_errors', 1);
+error_reporting(E_ALL);
+session_start();
 include('db.php'); // Menjangkakan sambungan menggunakan $pdo
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
@@ -102,9 +105,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             curl_setopt($ch, CURLOPT_POST, true);
             curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($data));
             curl_setopt($ch, CURLOPT_HTTPHEADER, ['api-key: ' . $api_key, 'Content-Type: application/json']);
+            curl_setopt($ch, CURLOPT_TIMEOUT, 120); // Elakkan isu timeout 30 saat
+            
             $response = curl_exec($ch);
             $http_code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-            // curl_close($ch); dibuang kerana deprecated di PHP 8.5
 
             if ($http_code == 201 || $http_code == 200) {
                 // GABUNGKAN NAMA STAF UNTUK DISIMPAN DALAM DATABASE & GOOGLE SHEETS
@@ -116,10 +120,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                     $stmt_log = $pdo->prepare("INSERT INTO makluman_log (surat_id, nama_staf, keterangan) VALUES (?, ?, ?)");
                     $stmt_log->execute([$surat_id_val, $senarai_staf_string, 'Berjaya Dimaklumkan']);
                 } catch (PDOException $e) {
-                    // Abaikan jika ralat log, atau papar amaran kecil
+                    // Abaikan jika ralat log
                 }
 
-                // B. (Pilihan) Hantar data secara auto ke Google Sheets (Google Drive)
+                // B. Hantar data secara auto ke Google Sheets dengan semakan keselamatan respons
                 $url_google_script = "https://script.google.com/macros/s/AKfycbzcrzX07aLWHi2krdCqIGTvDSFAaFmp5YjRSdUDDsfAFIrHjV1rywUCHyDmnDDcxVGy2w/exec"; 
                 if (!empty($url_google_script)) {
                     $data_to_sheets = [
@@ -127,12 +131,24 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                         'perkara'    => $perkara,
                         'nama_staf'  => $senarai_staf_string
                     ];
+                    
                     $ch_gs = curl_init($url_google_script);
                     curl_setopt($ch_gs, CURLOPT_RETURNTRANSFER, true);
                     curl_setopt($ch_gs, CURLOPT_POSTFIELDS, json_encode($data_to_sheets));
                     curl_setopt($ch_gs, CURLOPT_HTTPHEADER, ['Content-Type: application/json']);
-                    curl_exec($ch_gs);
-                    // curl_close($ch_gs); dibuang kerana deprecated di PHP 8.5
+                    curl_setopt($ch_gs, CURLOPT_TIMEOUT, 60);
+                    
+                    $response_gs = curl_exec($ch_gs);
+                    $http_code_gs = curl_getinfo($ch_gs, CURLINFO_HTTP_CODE);
+
+                    // Mengelakkan ralat Unexpected token '<' jika Google mengembalikan paparan HTML ralat
+                    if ($http_code_gs == 200) {
+                        $json_check = json_decode($response_gs, true);
+                        if (json_last_error() !== JSON_ERROR_NONE && strpos($response_gs, '<html') !== false) {
+                            // Paparkan amaran mesra jika Google Script gagal memproses
+                            echo "<script>alert('Amaran: E-mel berjaya dihantar tetapi Google Apps Script membalas ralat HTML. Sila semak saiz data.');</script>";
+                        }
+                    }
                 }
 
                 // Redirect semula ke muka surat maklum dengan membawa ID surat asal
