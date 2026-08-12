@@ -104,7 +104,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             curl_setopt($ch, CURLOPT_HTTPHEADER, ['api-key: ' . $api_key, 'Content-Type: application/json']);
             $response = curl_exec($ch);
             $http_code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-            curl_close($ch);
+            // curl_close($ch); dibuang kerana deprecated di PHP 8.5
 
             if ($http_code == 201 || $http_code == 200) {
                 // GABUNGKAN NAMA STAF UNTUK DISIMPAN DALAM DATABASE & GOOGLE SHEETS
@@ -120,7 +120,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 }
 
                 // B. (Pilihan) Hantar data secara auto ke Google Sheets (Google Drive)
-                // Masukkan URL Web App Google Apps Script anda di sini jika mahu guna fungsi Excel Drive:
                 $url_google_script = ""; 
                 if (!empty($url_google_script)) {
                     $data_to_sheets = [
@@ -133,7 +132,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                     curl_setopt($ch_gs, CURLOPT_POSTFIELDS, json_encode($data_to_sheets));
                     curl_setopt($ch_gs, CURLOPT_HTTPHEADER, ['Content-Type: application/json']);
                     curl_exec($ch_gs);
-                    curl_close($ch_gs);
+                    // curl_close($ch_gs); dibuang kerana deprecated di PHP 8.5
                 }
 
                 // Redirect semula ke muka surat maklum dengan membawa ID surat asal
