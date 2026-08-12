@@ -19,6 +19,7 @@ $status = strtoupper(trim($row['status'] ?? 'TIADA STATUS'));
 $no_rujukan = htmlspecialchars($row['no_rujukan'] ?? '-');
 $tarikh_terima = !empty($row['tarikh_terima']) ? date('d/m/Y', strtotime($row['tarikh_terima'])) : '-';
 $daripada = htmlspecialchars($row['daripada'] ?? '-');
+$perkara = htmlspecialchars($row['perkara'] ?? '-'); // Diambil dari kolum 'perkara'
 $didaftarkan_oleh = htmlspecialchars($row['didaftarkan_oleh'] ?? 'Admin');
 $catatan = !empty($row['catatan']) ? nl2br(htmlspecialchars($row['catatan'])) : '<em>Tiada catatan diberikan.</em>';
 $arahan = htmlspecialchars($row['arahan_pilihan'] ?? 'TIADA ARAHAN');
@@ -28,7 +29,6 @@ $tarikh_sah = !empty($row['tarikh_disahkan']) ? date('d/m/Y', strtotime($row['ta
 $signature_data = $row['tandatangan'] ?? ''; 
 
 // 2. Membaca nilai role dari pangkalan data (table users / column role)
-// Dinormalisasikan kepada huruf kecil untuk perbandingan yang tepat (tpa, tpp, pengarah)
 $role = strtolower(trim($row['user_role'] ?? $row['target_role'] ?? ''));
 
 // Tetapan default (jika tiada padanan)
@@ -113,8 +113,11 @@ if ($role === 'tpp') {
             <td style="border: 1px solid #e2e8f0;"><strong>Didaftarkan Oleh:</strong><br><?= $didaftarkan_oleh ?></td>
         </tr>
         <tr>
-            <td style="border: 1px solid #e2e8f0;"><strong>Pegawai:</strong><br><?= $pegawai ?></td>
-            <td style="border: 1px solid #e2e8f0;"><strong>Salinan Kepada:</strong><br><?= $salinan_kepada ?></td>
+            <td colspan="2" style="border: 1px solid #e2e8f0;"><strong>Perkara (Tajuk Surat):</strong><br><?= $perkara ?></td>
+        </tr>
+        <tr>
+            <td width="50%" style="border: 1px solid #e2e8f0;"><strong>Pegawai:</strong><br><?= $pegawai ?></td>
+            <td width="50%" style="border: 1px solid #e2e8f0;"><strong>Salinan Kepada:</strong><br><?= $salinan_kepada ?></td>
         </tr>
     </table>
 
