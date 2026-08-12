@@ -325,6 +325,22 @@ $admin_name = $_SESSION['user_name'] ?? 'Admin Sistem';
                 </div>
             </div>
 
+            <!-- Kolum Tambahan: Terima Daripada -->
+            <div class="form-group">
+                <label>Terima Daripada:</label>
+                <div class="input-wrapper">
+                    <i class="fa-solid fa-paper-plane"></i>
+                    <select name="terima_daripada" required>
+                        <option value="" disabled selected>-- Sila Pilih Kaedah Penerimaan --</option>
+                        <option value="email">Email</option>
+                        <option value="email pengarah">Email Pengarah</option>
+                        <option value="email pegawai">Email Pegawai</option>
+                        <option value="melalui pos">Melalui Pos</option>
+                        <option value="serahan tangan">Serahan Tangan</option>
+                    </select>
+                </div>
+            </div>
+
             <div class="form-group">
                 <label>Hantar Kepada:</label>
                 <select name="target_role" required>
