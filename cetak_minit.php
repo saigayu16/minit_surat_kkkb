@@ -7,7 +7,7 @@ if (!isset($_GET['id']) || empty($_GET['id'])) { die("ID Dokumen tidak sah."); }
 
 $id = intval($_GET['id']);
 
-// 1. Ambil maklumat minit surat dan maklumat pengguna yang berkaitan
+// 1. Ambil maklumat minit surat termasuk medan terima_daripada
 $stmt = $pdo->prepare("SELECT m.*, u.role as user_role FROM minit_surat m LEFT JOIN users u ON m.target_role = u.role OR m.didaftarkan_oleh = u.email WHERE m.id = ?");
 $stmt->execute([$id]);
 $row = $stmt->fetch(PDO::FETCH_ASSOC);
@@ -21,6 +21,7 @@ $no_fail = htmlspecialchars($row['no_fail'] ?? '-');
 $tarikh_surat = !empty($row['tarikh_surat']) ? date('d/m/Y', strtotime($row['tarikh_surat'])) : '-';
 $tarikh_terima = !empty($row['tarikh_terima']) ? date('d/m/Y', strtotime($row['tarikh_terima'])) : '-';
 $daripada = htmlspecialchars($row['daripada'] ?? '-');
+$terima_daripada = htmlspecialchars($row['terima_daripada'] ?? '-'); // <-- Baca nilai terima_daripada dari DB
 $kepada = htmlspecialchars($row['target_role'] ?? '-');
 $perkara = htmlspecialchars($row['perkara'] ?? '-'); 
 $didaftarkan_oleh = htmlspecialchars($row['didaftarkan_oleh'] ?? 'Admin');
@@ -64,7 +65,7 @@ if (isset($_POST['save_spreadsheet'])) {
         'daripada_siapa'    => $daripada,
         'perkara'           => $perkara,
         'dirujuk_kepada'    => strtoupper($kepada),
-        'terima_daripada'   => $didaftarkan_oleh
+        'terima_daripada'   => $row['terima_daripada'] ?? '' // <-- Hantar nilai asal ke Google Spreadsheet
     ];
 
     $ch = curl_init($url_google_script);
@@ -174,7 +175,7 @@ if (isset($_POST['save_spreadsheet'])) {
             <td style="border: 1px solid #cbd5e1;"><strong>Kepada:</strong><br><?= strtoupper($kepada) ?></td>
         </tr>
         <tr>
-            <td style="border: 1px solid #cbd5e1; border-top: none;">&nbsp;</td>
+            <td style="border: 1px solid #cbd5e1;"><strong>Terima Daripada:</strong><br><?= $terima_daripada ?></td>
             <td style="border: 1px solid #cbd5e1;"><strong>Salinan Kepada:</strong><br><?= $salinan_kepada ?></td>
         </tr>
     </table>
