@@ -100,8 +100,13 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         }
 
         if (!empty($to_recipients)) {
-            // 3. Sediakan struktur data untuk API Brevo
+            // 3. Sediakan struktur data untuk API Brevo (Menggunakan Environment Variable untuk keselamatan)
             $api_key = getenv('BREVO_API_KEY');
+            
+            if (empty($api_key)) {
+                echo "<script>alert('Ralat: BREVO_API_KEY tidak dijumpai pada environment pelayan.'); window.history.back();</script>";
+                exit;
+            }
             
             $data = [
                 "sender" => ["email" => "kkkepalabatasminit2026@gmail.com", "name" => "Sistem Minit Digital"],
