@@ -7,7 +7,7 @@ if (!isset($_GET['id']) || empty($_GET['id'])) { die("ID Dokumen tidak sah."); }
 
 $id = intval($_GET['id']);
 
-// 1. Ambil maklumat minit surat dan maklumat pengguna yang berkaitan (jika ada perkaitan ID staf/emel atau target_role)
+// 1. Ambil maklumat minit surat dan maklumat pengguna yang berkaitan
 $stmt = $pdo->prepare("SELECT m.*, u.role as user_role FROM minit_surat m LEFT JOIN users u ON m.target_role = u.role OR m.didaftarkan_oleh = u.email WHERE m.id = ?");
 $stmt->execute([$id]);
 $row = $stmt->fetch(PDO::FETCH_ASSOC);
@@ -28,7 +28,7 @@ $salinan_kepada = htmlspecialchars($row['salinan_kepada'] ?? '-');
 $tarikh_sah = !empty($row['tarikh_disahkan']) ? date('d/m/Y', strtotime($row['tarikh_disahkan'])) : (!empty($row['tarikh_sah']) ? date('d/m/Y', strtotime($row['tarikh_sah'])) : date('d/m/Y'));
 $signature_data = $row['tandatangan'] ?? ''; 
 
-// 2. Membaca nilai role dari pangkalan data (table users / column role)
+// 2. Membaca nilai role dari pangkalan data
 $role = strtolower(trim($row['user_role'] ?? $row['target_role'] ?? ''));
 
 // Tetapan default (jika tiada padanan)
@@ -72,7 +72,27 @@ if ($role === 'tpp') {
         }
          
         .header-title { font-size: 26px; font-weight: 800; color: #1e293b; text-align: center; text-transform: uppercase; margin-bottom: 5px; }
-        .office-header { font-size: 16px; font-weight: 700; color: #1e293b; text-align: center; margin-bottom: 25px; border-bottom: 2px solid #1e293b; padding-bottom: 15px; line-height: 1.5; }
+        .office-header { font-size: 16px; font-weight: 700; color: #1e293b; text-align: center; margin-bottom: 10px; line-height: 1.5; }
+        
+        /* Gaya untuk bahagian Perkara di bawah kepala pejabat */
+        .perkara-container {
+            text-align: center;
+            margin-bottom: 25px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #1e293b;
+        }
+        .perkara-title {
+            font-size: 13px;
+            font-weight: 700;
+            color: #64748b;
+            text-transform: uppercase;
+            margin-bottom: 4px;
+        }
+        .perkara-text {
+            font-size: 15px;
+            font-weight: 600;
+            color: #1e293b;
+        }
          
         .sticky-note { 
             background: #fffbeb; padding: 25px; border-radius: 4px; border-left: 10px solid #f59e0b; 
@@ -102,6 +122,12 @@ if ($role === 'tpp') {
 <div class="page-box">
     <div class="header-title">Kertas Minit</div>
     <div class="office-header"><?= $nama_pejabat ?></div>
+    
+    <!-- Perkara diletakkan di bawah nama pejabat dengan garisan pemisah -->
+    <div class="perkara-container">
+        <div class="perkara-title">Perkara / Tajuk Surat:</div>
+        <div class="perkara-text"><?= $perkara ?></div>
+    </div>
      
     <table width="100%" cellpadding="10" border="0" style="border-collapse: collapse; margin-bottom: 20px;">
         <tr>
@@ -111,9 +137,6 @@ if ($role === 'tpp') {
         <tr>
             <td style="border: 1px solid #e2e8f0;"><strong>Daripada:</strong><br><?= $daripada ?></td>
             <td style="border: 1px solid #e2e8f0;"><strong>Didaftarkan Oleh:</strong><br><?= $didaftarkan_oleh ?></td>
-        </tr>
-        <tr>
-            <td colspan="2" style="border: 1px solid #e2e8f0;"><strong>Perkara (Tajuk Surat):</strong><br><?= $perkara ?></td>
         </tr>
         <tr>
             <td width="50%" style="border: 1px solid #e2e8f0;"><strong>Pegawai:</strong><br><?= $pegawai ?></td>
