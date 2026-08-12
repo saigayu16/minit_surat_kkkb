@@ -92,7 +92,7 @@ $total_done = ($count_done) ? $count_done->fetch(PDO::FETCH_ASSOC)['total'] : 0;
         .table-container { background: var(--card-bg); border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.02); border: 1px solid var(--border-color); overflow: hidden; }
         table { width: 100%; border-collapse: collapse; text-align: left; }
         th { background: #f8fafc; color: var(--text-muted); padding: 16px; font-size: 0.85rem; font-weight: 600; text-transform: uppercase; border-bottom: 1px solid var(--border-color); }
-        td { padding: 16px; border-bottom: 1px solid var(--border-color); font-size: 0.95rem; color: #334155; }
+        td { padding: 16px; border-bottom: 1px solid var(--border-color); font-size: 0.95rem; color: #334155; max-width: 250px; word-wrap: break-word; }
         .status-badge { padding: 6px 12px; border-radius: 50px; font-size: 0.75rem; font-weight: 600; text-transform: uppercase; }
         .wait { background: #fee2e2; color: #991b1b; }
         .selesai-badge { background: #e0e7ff; color: #4338ca; }
@@ -131,6 +131,7 @@ $total_done = ($count_done) ? $count_done->fetch(PDO::FETCH_ASSOC)['total'] : 0;
                     <th>Tarikh</th>
                     <th>No. Rujukan</th>
                     <th>Daripada</th>
+                    <th>Perkara</th>
                     <th>Status</th>
                     <th>Tindakan</th>
                     <th>Maklum Kepada</th>
@@ -139,8 +140,8 @@ $total_done = ($count_done) ? $count_done->fetch(PDO::FETCH_ASSOC)['total'] : 0;
             <tbody>
                 <?php
                 try {
-                    // Menggunakan SELECT kolum spesifik untuk mengelakkan ralat 'cached plan must not change result type'
-                    $sql = "SELECT id, no_rujukan, tarikh_terima, created_at, daripada, status, maklum_kepada FROM minit_surat ORDER BY id DESC";
+                    // Mengambil kolum 'perkara' dari pangkalan data
+                    $sql = "SELECT id, no_rujukan, tarikh_terima, created_at, daripada, perkara, status, maklum_kepada FROM minit_surat ORDER BY id DESC";
                     $res = $pdo->query($sql);
                     $rows = $res->fetchAll(PDO::FETCH_ASSOC);
 
@@ -154,11 +155,13 @@ $total_done = ($count_done) ? $count_done->fetch(PDO::FETCH_ASSOC)['total'] : 0;
                             
                             $rujukan = htmlspecialchars($row['no_rujukan'] ?? '-');
                             $daripada = htmlspecialchars($row['daripada'] ?? '-');
+                            $perkara = htmlspecialchars($row['perkara'] ?? '-');
 
                             echo "<tr>
                                 <td>{$tarikh}</td>
                                 <td>{$rujukan}</td>
                                 <td>{$daripada}</td>
+                                <td>{$perkara}</td>
                                 <td><span class='status-badge {$badge}'>{$status}</span></td>
                                 <td>
                                     <a href='view_surat.php?id={$row['id']}' class='btn-view'><i class='fa-solid fa-eye'></i> Lihat</a><br>
@@ -169,10 +172,10 @@ $total_done = ($count_done) ? $count_done->fetch(PDO::FETCH_ASSOC)['total'] : 0;
                             </tr>";
                         }
                     } else {
-                        echo "<tr><td colspan='6' style='text-align:center; padding: 30px; color: #64748b;'>📂 Tiada rekod surat dijumpai dalam pangkalan data.</td></tr>";
+                        echo "<tr><td colspan='7' style='text-align:center; padding: 30px; color: #64748b;'>📂 Tiada rekod surat dijumpai dalam pangkalan data.</td></tr>";
                     }
                 } catch (PDOException $e) {
-                    echo "<tr><td colspan='6' style='text-align:center; padding: 30px; color: #991b1b;'>Ralat pangkalan data: " . htmlspecialchars($e->getMessage()) . "</td></tr>";
+                    echo "<tr><td colspan='7' style='text-align:center; padding: 30px; color: #991b1b;'>Ralat pangkalan data: " . htmlspecialchars($e->getMessage()) . "</td></tr>";
                 }
                 ?>
             </tbody>
