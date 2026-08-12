@@ -299,7 +299,7 @@ $admin_name = $_SESSION['user_name'] ?? 'Admin Sistem';
             <input type="hidden" name="didaftarkan_oleh" value="<?= htmlspecialchars($admin_name) ?>">
 
             <div class="form-group">
-                <label>No. Rujukan Surat:</label>
+                <label>No Rujukan Surat:</label>
                 <div class="input-wrapper">
                     <i class="fa-solid fa-hashtag"></i>
                     <input type="text" name="no_rujukan" placeholder="Contoh: KKKB/100-1/2/3(4)" required>
@@ -351,7 +351,7 @@ $admin_name = $_SESSION['user_name'] ?? 'Admin Sistem';
             </div>
 
             <div class="form-group">
-                <label>Perkara / Tajuk Surat:</label>
+                <label> Perkara Surat:</label>
                 <div class="input-wrapper textarea-wrapper">
                     <i class="fa-solid fa-heading"></i>
                     <textarea name="perkara" rows="2" placeholder="Ringkasan tajuk surat" required></textarea>
@@ -359,7 +359,7 @@ $admin_name = $_SESSION['user_name'] ?? 'Admin Sistem';
             </div>
 
             <div class="form-group">
-                <label>Perkara Surat (Detail):</label>
+                <label> Maklumat Lanjut (optional):</label>
                 <div class="input-wrapper textarea-wrapper">
                     <i class="fa-solid fa-align-left"></i>
                     <textarea name="perkara_surat" rows="3" placeholder="Butiran lanjut kandungan surat" required></textarea>
