@@ -120,7 +120,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 }
 
                 // B. (Pilihan) Hantar data secara auto ke Google Sheets (Google Drive)
-                $url_google_script = ""; 
+                $url_google_script = "https://script.google.com/macros/s/AKfycbyFFD_HoEc0ucC4rmcb60Vk1N_AsTpBr5YyqxMPP6Cc2KA8CERmFLnBycd7tt1jmetnag/exec"; 
                 if (!empty($url_google_script)) {
                     $data_to_sheets = [
                         'no_rujukan' => $no_rujukan_surat,
