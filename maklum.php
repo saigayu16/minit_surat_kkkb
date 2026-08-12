@@ -406,19 +406,28 @@ if (isset($_GET['padam_id'])) {
                     data: minitBase64
                 });
 
-                const scriptURL = 'https://script.google.com/macros/s/AKfycbxuor4QfsSlG2SWsC_8Mj2Lmtt3XhlCuQFRldugWGtCY4--mj5WSoCaqaYIyaXR-sSmTQ/exec'; 
+                // MASUKKAN URL GOOGLE APPS SCRIPT ANDA DI SINI
+                const scriptURL = 'https://script.google.com/macros/s/AKfycbykMf37gVal43goO5xvWI9Pp-SoDgjF5AaMzhM_Qvng35_L9FcVH8kEa5y2307xsq_Jpw/exec'; 
                 
-                await fetch(scriptURL, {
+                fetch(scriptURL, {
                   method: 'POST',
-                  mode: 'no-cors',
                   body: JSON.stringify({
                       action: 'mergeAndUpload',
                       suratId: '<?= htmlspecialchars($id) ?>',
                       files: filesData
                   })
+                })
+                .then(response => response.text())
+                .then(result => {
+                    console.log("Respons dari Apps Script:", result);
+                    document.getElementById('maklumanForm').submit();
+                })
+                .catch(error => {
+                    console.error('Ralat Fetch:', error);
+                    alert('Gagal berhubung dengan Google Apps Script: ' + error.message);
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = '<i class="fa-solid fa-paper-plane"></i> Hantar Sekarang & Simpan ke Drive!';
                 });
-
-                document.getElementById('maklumanForm').submit();
 
             } catch (error) {
                 console.error(error);
