@@ -19,7 +19,7 @@ $status = strtoupper(trim($row['status'] ?? 'TIADA STATUS'));
 $no_rujukan = htmlspecialchars($row['no_rujukan'] ?? '-');
 $tarikh_terima = !empty($row['tarikh_terima']) ? date('d/m/Y', strtotime($row['tarikh_terima'])) : '-';
 $daripada = htmlspecialchars($row['daripada'] ?? '-');
-$perkara = htmlspecialchars($row['perkara'] ?? '-'); // Diambil dari kolum 'perkara'
+$perkara = htmlspecialchars($row['perkara'] ?? '-'); 
 $didaftarkan_oleh = htmlspecialchars($row['didaftarkan_oleh'] ?? 'Admin');
 $catatan = !empty($row['catatan']) ? nl2br(htmlspecialchars($row['catatan'])) : '<em>Tiada catatan diberikan.</em>';
 $arahan = htmlspecialchars($row['arahan_pilihan'] ?? 'TIADA ARAHAN');
@@ -45,6 +45,31 @@ if ($role === 'tpp') {
 } elseif ($role === 'pengarah') {
     $nama_pejabat = "PEJABAT PENGARAH<br>KOLEJ KOMUNITI KEPALA BATAS";
     $gelaran_tandatangan = "PENGARAH";
+}
+
+// 3. Logik apabila butang 'Save to Spreadsheet' ditekan
+if (isset($_POST['save_spreadsheet'])) {
+    $url_google_script = "https://script.google.com/macros/s/AKfycbzdYoVRvQsPmk5DlXcjL4eOAC3lStDr3RmcjOEYJSJfq1WGd_JgfeflEFvu8WztZHww/exec"; // Masukkan URL Web App Google Apps Script anda di sini
+
+    $data_to_send = [
+        'no_rujukan'       => $row['no_rujukan'] ?? '-',
+        'perkara'          => $row['perkara'] ?? '-',
+        'daripada'         => $row['daripada'] ?? '-',
+        'arahan'           => $row['arahan_pilihan'] ?? '-',
+        'didaftarkan_oleh' => $row['didaftarkan_oleh'] ?? 'Admin'
+    ];
+
+    $ch = curl_init($url_google_script);
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($data_to_send));
+    curl_setopt($ch, CURLOPT_HTTPHEADER, ['Content-Type: application/json']);
+    $response = curl_exec($ch);
+    curl_close($ch);
+
+    // Semak fail semasa (ambil nama fail PHP sendiri secara dinamik)
+    $current_page = basename($_SERVER['PHP_SELF']);
+    echo "<script>alert('Maklumat berjaya disimpan ke Google Spreadsheet!'); window.location.href='" . $current_page . "?id=" . $id . "';</script>";
+    exit;
 }
 ?>
 
@@ -74,7 +99,6 @@ if ($role === 'tpp') {
         .header-title { font-size: 26px; font-weight: 800; color: #1e293b; text-align: center; text-transform: uppercase; margin-bottom: 5px; }
         .office-header { font-size: 16px; font-weight: 700; color: #1e293b; text-align: center; margin-bottom: 10px; line-height: 1.5; }
         
-        /* Gaya untuk bahagian Perkara di bawah kepala pejabat */
         .perkara-container {
             text-align: center;
             margin-bottom: 25px;
@@ -108,10 +132,11 @@ if ($role === 'tpp') {
         .stamp-box::before { content: "TANDATANGAN RASMI"; position: absolute; top: -12px; background: white; padding: 0 5px; font-size: 9px; font-weight: bold; color: #1e293b; }
         .sig-image { max-height: 60px; display: block; margin: 0 auto 5px auto; }
 
-        .btn-container { position: fixed; bottom: 30px; right: 30px; display: flex; gap: 10px; z-index: 100; }
+        .btn-container { position: fixed; bottom: 30px; right: 30px; display: flex; gap: 10px; z-index: 100; flex-wrap: wrap; justify-content: flex-end; }
         .btn-action { padding: 15px 30px; border-radius: 50px; border: none; cursor: pointer; font-weight: 600; box-shadow: 0 4px 10px rgba(0,0,0,0.3); transition: 0.3s; text-decoration: none; display: inline-block; }
         .btn-print { background: #0f172a; color: white; }
         .btn-back { background: #e2e8f0; color: #475569; }
+        .btn-excel { background: #10b981; color: white; }
         .btn-action:hover { transform: scale(1.05); }
 
         @media print { .no-print { display: none !important; } body::before { display: none; } body { background: white; } .page-box { box-shadow: none; border: none; margin: 0 auto; } }
@@ -123,7 +148,6 @@ if ($role === 'tpp') {
     <div class="header-title">Kertas Minit</div>
     <div class="office-header"><?= $nama_pejabat ?></div>
     
-    <!-- Perkara diletakkan di bawah nama pejabat dengan garisan pemisah -->
     <div class="perkara-container">
         <div class="perkara-title">Perkara / Tajuk Surat:</div>
         <div class="perkara-text"><?= $perkara ?></div>
@@ -163,6 +187,14 @@ if ($role === 'tpp') {
     <a href="homeadmin.php" class="btn-action btn-back">
         <i class="fa-solid fa-arrow-left"></i> KEMBALI
     </a>
+    
+    <!-- Butang Save to Spreadsheet -->
+    <form method="POST" style="margin: 0;">
+        <button type="submit" name="save_spreadsheet" class="btn-action btn-excel">
+            <i class="fa-solid fa-file-excel"></i> SAVE TO SPREADSHEET
+        </button>
+    </form>
+
     <button class="btn-action btn-print" onclick="window.print()">
         <i class="fa-solid fa-print"></i> CETAK BORANG RASMI
     </button>
