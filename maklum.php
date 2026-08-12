@@ -308,11 +308,11 @@ if (isset($_GET['padam_id'])) {
                 <input type="file" name="dokumen_minit" id="dokumen_minit" accept=".pdf,.jpg,.png" required>
             </div>
             
-            <!-- 1 BUTANG UTAMA SAHAJA (HANTAR & SIMPAN DRIVE SEKALI) -->
+            <!-- 1 BUTANG UTAMA SAHAJA -->
             <button type="submit" id="submitBtn"><i class="fa-solid fa-paper-plane"></i> Hantar Sekarang & Simpan ke Drive!</button>
         </form>
 
-        <!-- SEKSYEN BUKTI / REKOD MAKLUMAN YANG TELAH DIHANTAR -->
+        <!-- SEKSYEN BUKTI / REKOD MAKLUMAN -->
         <h4><i class="fa-solid fa-clipboard-check"></i> Bukti / Rekod Makluman Terdahulu</h4>
         <div style="max-height: 180px; overflow-y: auto;">
             <table class="bukti-table">
@@ -346,11 +346,11 @@ if (isset($_GET['padam_id'])) {
                             echo "<tr><td colspan='3' style='text-align: center; color: #795548;'>Tiada rekod makluman dihantar lagi untuk surat ini.</td></tr>";
                         }
                     } catch (PDOException $e) {
-                        echo "<tr><td colspan='3' style='text-align: center; color: #c62828;'>Sila pastikan jadual log makluman wujud dalam database untuk memaparkan bukti.</td></tr>";
+                        echo "<tr><td colspan='3' style='text-align: center; color: #c62828;'>Sila pastikan jadual log makluman wujud dalam database.</td></tr>";
                     }
                     ?>
                 </tbody>
-          </table>
+            </table>
         </div>
 
         <div style="text-align: center;">
@@ -373,9 +373,8 @@ if (isset($_GET['padam_id'])) {
             document.getElementById('email').value = emails.join(', ');
         }
 
-        // Fungsi Pintar: Hantar ke Google Drive dahulu via AJAX, kemudian teruskan hantar form PHP
         async function handleFormSubmit(event) {
-            event.preventDefault(); // Hentikan form daripada terus submit sekelip mata
+            event.preventDefault();
 
             const dokumenAsalInput = document.getElementById('dokumen_asal');
             const dokumenMinitInput = document.getElementById('dokumen_minit');
@@ -388,12 +387,11 @@ if (isset($_GET['padam_id'])) {
 
             const submitBtn = document.getElementById('submitBtn');
             submitBtn.disabled = true;
-            submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Sedang hantar emel & simpan ke Drive...';
+            submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Sedang hantar emel & merge dokumen ke Drive...';
 
             try {
                 let filesData = [];
 
-                // Tukar Dokumen Asal ke Base64
                 for (let i = 0; i < dokumenAsalInput.files.length; i++) {
                     let file = dokumenAsalInput.files[i];
                     let base64 = await toBase64(file);
@@ -404,7 +402,6 @@ if (isset($_GET['padam_id'])) {
                     });
                 }
 
-                // Tukar Dokumen Minit ke Base64
                 let minitFile = dokumenMinitInput.files[0];
                 let minitBase64 = await toBase64(minitFile);
                 filesData.push({
@@ -413,21 +410,18 @@ if (isset($_GET['padam_id'])) {
                     data: minitBase64
                 });
 
-                // URL Google Apps Script Web App anda
-                const scriptURL = 'https://script.google.com/macros/s/AKfycbwiGgXldmbQgIgXDj3L6m0TBNGLYHVo2KRCORfmuLsw7n_-iqfqt-LaWSmdik1YIANjsA/exec'; 
+                const scriptURL = 'https://script.google.com/macros/s/AKfycbyKfS2GSCfZdIxrnXShbaL4NtovgFTN0kg41HKlVkzDW5li4-OY3Iu0GmEx_6JM-A_BEw/exec'; 
                 
-                // Hantar fail ke Google Drive secara senyap di latar belakang
                 await fetch(scriptURL, {
-                    method: 'POST',
-                    mode: 'no-cors', // Penting untuk elak ralat CORS dengan Google Apps Script
-                    body: JSON.stringify({
-                        action: 'mergeAndUpload',
-                        suratId: '<?= htmlspecialchars($id) ?>',
-                        files: filesData
-                    })
-                  });
+                  method: 'POST',
+                  mode: 'no-cors',
+                  body: JSON.stringify({
+                      action: 'mergeAndUpload',
+                      suratId: '<?= htmlspecialchars($id) ?>',
+                      files: filesData
+                  })
+                });
 
-                // Selepas selesai hantar ke Drive, sambung proses PHP asal (hantar emel/simpan log)
                 document.getElementById('maklumanForm').submit();
 
             } catch (error) {
@@ -438,7 +432,6 @@ if (isset($_GET['padam_id'])) {
             }
         }
 
-        // Helper untuk convert File kepada Base64
         function toBase64(file) {
             return new Promise((resolve, reject) => {
                 const reader = new FileReader();
