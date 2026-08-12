@@ -11,13 +11,14 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     }
 
     // 1. Ambil input dengan selamat
-    $no_rujukan       = $_POST['no_rujukan'] ?? '';
-    $tarikh_terima    = $_POST['tarikh_terima'] ?? '';
-    $daripada         = $_POST['daripada'] ?? '';
-    $tarikh_surat     = $_POST['tarikh_surat'] ?? '';
-    $perkara          = $_POST['perkara'] ?? ''; 
-    $kolej            = $_POST['kolej'] ?? '';
-    $target_role      = $_POST['target_role'] ?? '';
+    $no_rujukan        = $_POST['no_rujukan'] ?? '';
+    $tarikh_terima     = $_POST['tarikh_terima'] ?? '';
+    $daripada          = $_POST['daripada'] ?? '';
+    $terima_daripada   = $_POST['terima_daripada'] ?? ''; // <-- Ambil nilai terima_daripada dari borang
+    $tarikh_surat      = $_POST['tarikh_surat'] ?? '';
+    $perkara           = $_POST['perkara'] ?? ''; 
+    $kolej             = $_POST['kolej'] ?? '';
+    $target_role       = $_POST['target_role'] ?? '';
     
     // Ambil nama admin yang sedang log masuk dari session
     $didaftarkan_oleh = $_SESSION['user_name'] ?? 'Admin Sistem';
@@ -41,15 +42,16 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         $base64_file = base64_encode(file_get_contents($_FILES['fail_surat']['tmp_name']));
     }
 
-    // 3. Simpan ke Database Neon (PostgreSQL) menggunakan RETURNING id tanpa Google Drive
-    $sql = "INSERT INTO minit_surat (no_rujukan, tarikh_terima, daripada, perkara, tarikh_surat, kolej, target_role, status, didaftarkan_oleh)  
-            VALUES (?, ?, ?, ?, ?, ?, ?, 'BARU', ?) RETURNING id";
+    // 3. Simpan ke Database Neon (PostgreSQL) termasuk terima_daripada menggunakan RETURNING id
+    $sql = "INSERT INTO minit_surat (no_rujukan, tarikh_terima, daripada, terima_daripada, perkara, tarikh_surat, kolej, target_role, status, didaftarkan_oleh)  
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'BARU', ?) RETURNING id";
     $stmt = $pdo->prepare($sql);
     
     $success = $stmt->execute([
         $no_rujukan, 
         $tarikh_terima, 
-        $daripada, 
+        $daripada,
+        $terima_daripada, // <-- Masukkan nilai ke dalam parameter SQL
         $perkara, 
         $tarikh_surat,
         $kolej, 
@@ -61,7 +63,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         $row_inserted = $stmt->fetch(PDO::FETCH_ASSOC);
         $id_surat_baru = $row_inserted['id']; 
 
-        // 4. Hantar data ke Google Spreadsheet secara automatik (Tanpa terima_daripada)
+        // 4. Hantar data ke Google Spreadsheet secara automatik (Termasuk terima_daripada)
         $url_google_script = "https://script.google.com/macros/s/AKfycbwfYyFrdbeh-IoWKsOVOmZ3M7drqRT6fJ7hXXNvzoU4tUA09wKr82cnUa-LD6fe1Ret/exec"; 
 
         $data_to_send = [
@@ -70,6 +72,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             'no_fail'           => $kolej,
             'tarikh_surat'      => $tarikh_surat,
             'daripada_siapa'    => $daripada,
+            'terima_daripada'   => $terima_daripada, // <-- Hantar nilai ke Google Script
             'perkara'           => $perkara,
             'dirujuk_kepada'    => strtoupper($target_role)
         ];
@@ -102,7 +105,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
         $link_sistem = $protocol . "://$host/$halaman_tujuan?id=" . $id_surat_baru; 
 
-        // 6. Integrasi API Brevo (Kekal seperti asal anda)
+        // 6. Integrasi API Brevo
         $api_key = getenv('BREVO_API_KEY');
         
         $data = [
