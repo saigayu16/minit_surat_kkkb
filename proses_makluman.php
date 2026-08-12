@@ -78,7 +78,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
         if (!empty($to_recipients)) {
             // 3. Sediakan struktur data untuk API Brevo
-            $api_key = getenv('BREVO_API_KEY');
+            // Gantikan dengan API Key anda atau pastikan environment variable diset
+            $api_key = getenv('BREVO_API_KEY') ?: 'MASUKKAN_API_KEY_BREVO_ANDA_DI_SINI'; 
             
             $data = [
                 "sender" => ["email" => "kkkepalabatasminit2026@gmail.com", "name" => "Sistem Minit Digital"],
@@ -105,10 +106,11 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             curl_setopt($ch, CURLOPT_POST, true);
             curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($data));
             curl_setopt($ch, CURLOPT_HTTPHEADER, ['api-key: ' . $api_key, 'Content-Type: application/json']);
-            curl_setopt($ch, CURLOPT_TIMEOUT, 120); // Elakkan isu timeout 30 saat
+            curl_setopt($ch, CURLOPT_TIMEOUT, 120); // Elakkan isu timeout
             
             $response = curl_exec($ch);
             $http_code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+            curl_close($ch);
 
             if ($http_code == 201 || $http_code == 200) {
                 // GABUNGKAN NAMA STAF UNTUK DISIMPAN DALAM DATABASE & GOOGLE SHEETS
@@ -116,14 +118,14 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 $surat_id_val = !empty($surat_id) ? intval($surat_id) : 0;
 
                 try {
-                    // A. Simpan rekod ke dalam database PostgreSQL (jadual makluman_log)
+                    // A. Simpan rekod ke dalam database (jadual makluman_log)
                     $stmt_log = $pdo->prepare("INSERT INTO makluman_log (surat_id, nama_staf, keterangan) VALUES (?, ?, ?)");
                     $stmt_log->execute([$surat_id_val, $senarai_staf_string, 'Berjaya Dimaklumkan']);
                 } catch (PDOException $e) {
                     // Abaikan jika ralat log
                 }
 
-                // B. Hantar data secara auto ke Google Sheets dengan semakan keselamatan respons
+                // B. Hantar data secara auto ke Google Sheets
                 $url_google_script = "https://script.google.com/macros/s/AKfycbzcrzX07aLWHi2krdCqIGTvDSFAaFmp5YjRSdUDDsfAFIrHjV1rywUCHyDmnDDcxVGy2w/exec"; 
                 if (!empty($url_google_script)) {
                     $data_to_sheets = [
@@ -140,15 +142,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                     
                     $response_gs = curl_exec($ch_gs);
                     $http_code_gs = curl_getinfo($ch_gs, CURLINFO_HTTP_CODE);
-
-                    // Mengelakkan ralat Unexpected token '<' jika Google mengembalikan paparan HTML ralat
-                    if ($http_code_gs == 200) {
-                        $json_check = json_decode($response_gs, true);
-                        if (json_last_error() !== JSON_ERROR_NONE && strpos($response_gs, '<html') !== false) {
-                            // Paparkan amaran mesra jika Google Script gagal memproses
-                            echo "<script>alert('Amaran: E-mel berjaya dihantar tetapi Google Apps Script membalas ralat HTML. Sila semak saiz data.');</script>";
-                        }
-                    }
+                    curl_close($ch_gs);
                 }
 
                 // Redirect semula ke muka surat maklum dengan membawa ID surat asal
@@ -157,14 +151,14 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 exit;
 
             } else {
-                echo "E-mel gagal dihantar. Sila semak API Key Brevo atau saiz keseluruhan fail lampiran di pelayan. Response: " . $response;
+                echo "<script>alert('E-mel gagal dihantar. Response: " . addslashes($response) . "'); window.history.back();</script>";
             }
         } else {
-            echo "Tiada e-mel staf yang sah dijumpai untuk dihantar.";
+            echo "<script>alert('Tiada e-mel staf yang sah dijumpai.'); window.history.back();</script>";
         }
 
     } else {
-        echo "Sila pilih sekurang-kurangnya seorang staf.";
+        echo "<script>alert('Sila pilih sekurang-kurangnya seorang staf.'); window.history.back();</script>";
     }
 }
 ?>
