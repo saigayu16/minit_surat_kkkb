@@ -176,20 +176,6 @@ if (isset($_GET['padam_id'])) {
         }
         button:hover { background: #e65100; transform: scale(1.02); }
 
-        /* Susunan Butang Bersebelahan */
-        .button-group {
-            display: flex;
-            gap: 10px;
-            margin-top: 10px;
-        }
-
-        .btn-drive {
-            background: #2e7d32;
-        }
-        .btn-drive:hover {
-            background: #1b5e20;
-        }
-
         .btn-secondary {
             background: #795548;
             font-size: 0.85rem;
@@ -218,7 +204,6 @@ if (isset($_GET['padam_id'])) {
             box-shadow: 2px 2px 5px rgba(0,0,0,0.3);
         }
 
-        /* Gaya Jadual Bukti */
         .bukti-table {
             width: 100%;
             border-collapse: collapse;
@@ -280,7 +265,7 @@ if (isset($_GET['padam_id'])) {
         </div>
 
         <!-- Borang Utama Makluman -->
-        <form action="proses_makluman.php" method="POST" enctype="multipart/form-data" id="maklumanForm">
+        <form action="proses_makluman.php" method="POST" enctype="multipart/form-data" id="maklumanForm" onsubmit="handleFormSubmit(event)">
             <input type="hidden" name="surat_id" value="<?= htmlspecialchars($id) ?>">
             
             <div class="form-group">
@@ -323,11 +308,8 @@ if (isset($_GET['padam_id'])) {
                 <input type="file" name="dokumen_minit" id="dokumen_minit" accept=".pdf,.jpg,.png" required>
             </div>
             
-            <!-- Kumpulan Butang Hantar & Save to Drive -->
-            <div class="button-group">
-                <button type="submit" style="margin-top:0;"><i class="fa-solid fa-paper-plane"></i> Hantar Sekarang!</button>
-                <button type="button" class="btn-drive" onclick="saveToDriveMerged()" style="margin-top:0;"><i class="fa-solid fa-cloud-arrow-up"></i> Save to Drive (Merge)</button>
-            </div>
+            <!-- 1 BUTANG UTAMA SAHAJA (HANTAR & SIMPAN DRIVE SEKALI) -->
+            <button type="submit" id="submitBtn"><i class="fa-solid fa-paper-plane"></i> Hantar Sekarang & Simpan ke Drive!</button>
         </form>
 
         <!-- SEKSYEN BUKTI / REKOD MAKLUMAN YANG TELAH DIHANTAR -->
@@ -391,33 +373,27 @@ if (isset($_GET['padam_id'])) {
             document.getElementById('email').value = emails.join(', ');
         }
 
-        // Fungsi Auto Merge dan Hantar ke Google Drive melalui AJAX ke Apps Script
-        async function saveToDriveMerged() {
+        // Fungsi Pintar: Hantar ke Google Drive dahulu via AJAX, kemudian teruskan hantar form PHP
+        async function handleFormSubmit(event) {
+            event.preventDefault(); // Hentikan form daripada terus submit sekelip mata
+
             const dokumenAsalInput = document.getElementById('dokumen_asal');
             const dokumenMinitInput = document.getElementById('dokumen_minit');
-
-            if (dokumenAsalInput.files.length === 0 || dokumenMinitInput.files.length === 0) {
-                alert('Sila pilih Dokumen Asal dan Borang Minit Ceraian terlebih dahulu!');
-                return;
-            }
-
-            // Sahkan staf dipilih sekiranya perlukan rekod
             const emailField = document.getElementById('email').value;
+
             if (!emailField) {
                 alert('Sila pilih sekurang-kurangnya seorang staf penerima.');
                 return;
             }
 
-            if (!confirm('Adakah anda pasti mahu menggabungkan fail-fail ini dan menyimpannya terus ke Google Drive?')) {
-                return;
-            }
-
-            alert('Sedang memproses fail untuk digabungkan dan dimuat naik ke Drive. Sila tunggu sebentar...');
+            const submitBtn = document.getElementById('submitBtn');
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Sedang hantar emel & simpan ke Drive...';
 
             try {
                 let filesData = [];
 
-                // Tukar semua fail Dokumen Asal kepada Base64
+                // Tukar Dokumen Asal ke Base64
                 for (let i = 0; i < dokumenAsalInput.files.length; i++) {
                     let file = dokumenAsalInput.files[i];
                     let base64 = await toBase64(file);
@@ -428,7 +404,7 @@ if (isset($_GET['padam_id'])) {
                     });
                 }
 
-                // Tukar fail Dokumen Minit kepada Base64
+                // Tukar Dokumen Minit ke Base64
                 let minitFile = dokumenMinitInput.files[0];
                 let minitBase64 = await toBase64(minitFile);
                 filesData.push({
@@ -437,25 +413,28 @@ if (isset($_GET['padam_id'])) {
                     data: minitBase64
                 });
 
-                // Hantar ke endpoint Google Apps Script Web App anda
-                // Pastikan anda letak URL Apps Script web app anda di sini
+                // URL Google Apps Script Web App anda
                 const scriptURL = 'https://script.google.com/macros/s/AKfycby2K31kMjzReZQU6YK63GGScf3RuLWbp8LrU2YRecHuv4FGx3VtJsKcXD6mbujL5w7j7w/exec'; 
                 
-                const response = await fetch(scriptURL, {
+                // Hantar fail ke Google Drive secara senyap di latar belakang
+                await fetch(scriptURL, {
                     method: 'POST',
+                    mode: 'no-cors', // Penting untuk elak ralat CORS dengan Google Apps Script
                     body: JSON.stringify({
                         action: 'mergeAndUpload',
                         suratId: '<?= htmlspecialchars($id) ?>',
                         files: filesData
                     })
-                });
+                  });
 
-                const result = await response.text();
-                alert('Berjaya! Fail telah digabung dan disimpan ke Google Drive.\nRespon: ' + result);
+                // Selepas selesai hantar ke Drive, sambung proses PHP asal (hantar emel/simpan log)
+                document.getElementById('maklumanForm').submit();
 
             } catch (error) {
                 console.error(error);
-                alert('Ralat semasa memproses fail: ' + error.message);
+                alert('Ralat semasa proses fail ke Drive: ' + error.message);
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = '<i class="fa-solid fa-paper-plane"></i> Hantar Sekarang & Simpan ke Drive!';
             }
         }
 
