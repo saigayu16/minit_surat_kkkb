@@ -51,6 +51,21 @@ if (isset($_GET['padam_id'])) {
         exit;
     }
 }
+
+// Proses padam rekod log makluman
+if (isset($_GET['padam_log_id'])) {
+    $padam_log_id = $_GET['padam_log_id'];
+    try {
+        $stmt_delete_log = $pdo->prepare("DELETE FROM makluman_log WHERE id = ?");
+        $stmt_delete_log->execute([$padam_log_id]);
+        
+        echo "<script>alert('Rekod log makluman berjaya dipadam dari database!'); window.location.href='?id=" . htmlspecialchars($id) . "';</script>";
+        exit;
+    } catch (PDOException $e) {
+        echo "<script>alert('Ralat Database: " . addslashes($e->getMessage()) . "'); window.location.href='?id=" . htmlspecialchars($id) . "';</script>";
+        exit;
+    }
+}
 ?>
 <!DOCTYPE html>
 <html lang="ms">
@@ -82,7 +97,7 @@ if (isset($_GET['padam_id'])) {
             width: 100%;
             height: 100%;
             background-image: linear-gradient(rgba(0,0,0,0.3), rgba(0,0,0,0.3)), url('daftarsurat.jpg'); 
-            background-size: cover;         
+            background-size: cover;          
             background-position: center;     
             background-attachment: fixed;    
             background-repeat: no-repeat;
@@ -324,6 +339,7 @@ if (isset($_GET['padam_id'])) {
                         <th>Tarikh & Masa</th>
                         <th>Pihak / Staf Penerima</th>
                         <th>Dokumen / Status</th>
+                        <th style="text-align: center; width: 50px;">Tindakan</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -335,6 +351,7 @@ if (isset($_GET['padam_id'])) {
 
                         if ($log_rows && count($log_rows) > 0) {
                             foreach ($log_rows as $log) {
+                                $log_id = $log['id'];
                                 $tarikh_hantar = htmlspecialchars($log['created_at'] ?? '-');
                                 $penerima = htmlspecialchars($log['nama_staf'] ?? '-');
                                 $info_doc = htmlspecialchars($log['keterangan'] ?? 'Berjaya Dimaklumkan');
@@ -343,13 +360,18 @@ if (isset($_GET['padam_id'])) {
                                         <td>{$tarikh_hantar}</td>
                                         <td>{$penerima}</td>
                                         <td><span style='color: #2e7d32; font-weight: bold;'><i class='fa-solid fa-circle-check'></i> {$info_doc}</span></td>
+                                        <td style='text-align: center;'>
+                                            <a href='?id=" . htmlspecialchars($id) . "&padam_log_id=" . $log_id . "' class='btn-delete-staff' onclick='return confirm(\"Adakah anda pasti mahu memadam rekod makluman ini?\")' title='Padam Rekod'>
+                                                <i class='fa-solid fa-trash'></i>
+                                            </a>
+                                        </td>
                                       </tr>";
                             }
                         } else {
-                            echo "<tr><td colspan='3' style='text-align: center; color: #795548;'>Tiada rekod makluman dihantar lagi untuk surat ini.</td></tr>";
+                            echo "<tr><td colspan='4' style='text-align: center; color: #795548;'>Tiada rekod makluman dihantar lagi untuk surat ini.</td></tr>";
                         }
                     } catch (PDOException $e) {
-                        echo "<tr><td colspan='3' style='text-align: center; color: #c62828;'>Sila pastikan jadual log makluman wujud dalam database untuk memaparkan bukti.</td></tr>";
+                        echo "<tr><td colspan='4' style='text-align: center; color: #c62828;'>Sila pastikan jadual log makluman wujud dalam database untuk memaparkan bukti.</td></tr>";
                     }
                     ?>
                 </tbody>
@@ -419,7 +441,7 @@ if (isset($_GET['padam_id'])) {
                 // URL Google Apps Script Web App anda
                 const scriptURL = 'https://script.google.com/macros/s/AKfycbzcrzX07aLWHi2krdCqIGTvDSFAaFmp5YjRSdUDDsfAFIrHjV1rywUCHyDmnDDcxVGy2w/exec'; 
                 
-                // Hantar fail ke Google Drive (Tanpa no-cors supaya data payload sampai dengan sempurna)
+                // Hantar fail ke Google Drive
                 const response = await fetch(scriptURL, {
                     method: 'POST',
                     body: JSON.stringify({
