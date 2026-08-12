@@ -417,7 +417,7 @@ if (isset($_GET['padam_id'])) {
                 });
 
                 // URL Google Apps Script Web App anda
-                const scriptURL = 'https://script.google.com/macros/s/AKfycbyzu_gdFeae6Gzatd0sa7zW_7NwNHMoWwcas7kqK-aO3YyGv6k-6r647ALTKdctJeHWwg/exec'; 
+                const scriptURL = 'https://script.google.com/macros/s/AKfycbzgd5c1Y6XGR7QWQ2NsQn8jMDhxOz6l3KaDt1jNNYerv-EcC83M2SKL8SL2WpPcjeetqw/exec'; 
                 
                 // Hantar fail ke Google Drive (Tanpa no-cors supaya data payload sampai dengan sempurna)
                 const response = await fetch(scriptURL, {
