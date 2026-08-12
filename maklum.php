@@ -1,6 +1,12 @@
 <?php 
+ob_start();
+session_start();
 include('db.php'); 
 $id = $_GET['id'] ?? ''; 
+
+if (empty($id)) {
+    die("ID Surat tidak sah.");
+}
 
 // Proses tambah staf baharu
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['tambah_staf_baru'])) {
@@ -56,10 +62,11 @@ if (isset($_GET['padam_id'])) {
         body { 
             font-family: 'Quicksand', sans-serif; 
             display: flex; 
-            justify-content: center; 
+            flex-direction: column;
             align-items: center; 
             min-height: 100vh; 
             margin: 0; 
+            padding: 20px 0;
             position: relative;
             overflow-x: hidden;
         }
@@ -86,17 +93,14 @@ if (isset($_GET['padam_id'])) {
             padding: 30px 40px; 
             border-radius: 2px 20px 2px 20px; 
             width: 100%; 
-            max-width: 450px; 
+            max-width: 600px; 
             box-shadow: 15px 15px 30px rgba(0,0,0,0.15); 
             position: relative;
-            transform: rotate(-1deg); 
-            transition: transform 0.3s;
             margin: 20px 0;
         }
 
-        .box:hover { transform: rotate(0deg) scale(1.01); }
-
         h3 { margin: 0 0 15px 0; color: #5d4037; text-align: center; font-weight: 700; }
+        h4 { color: #5d4037; border-bottom: 2px dashed #fbc02d; padding-bottom: 8px; margin-top: 25px; }
         
         .form-group { margin-bottom: 12px; }
         label { display: block; margin-bottom: 4px; color: #795548; font-size: 0.85rem; font-weight: 600; }
@@ -199,6 +203,39 @@ if (isset($_GET['padam_id'])) {
             margin-left: -12.5px;
             box-shadow: 2px 2px 5px rgba(0,0,0,0.3);
         }
+
+        /* Gaya Jadual Bukti */
+        .bukti-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+            font-size: 0.85rem;
+            background: rgba(255,255,255,0.6);
+            border-radius: 5px;
+            overflow: hidden;
+        }
+        .bukti-table th, .bukti-table td {
+            border: 1px solid #fbc02d;
+            padding: 8px;
+            text-align: left;
+            color: #5d4037;
+        }
+        .bukti-table th {
+            background: #ffe082;
+        }
+        .btn-back-home {
+            display: inline-block;
+            margin-top: 15px;
+            text-align: center;
+            background: #4e342e;
+            color: white;
+            text-decoration: none;
+            padding: 10px 20px;
+            border-radius: 25px;
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
+        .btn-back-home:hover { background: #3e2723; }
     </style>
 </head>
 <body>
@@ -262,7 +299,6 @@ if (isset($_GET['padam_id'])) {
                 <input type="text" name="email" id="email" required readonly style="background: rgba(255,255,255,0.2); cursor: not-allowed;" placeholder="Akan terpapar secara automatik">
             </div>
             
-            <!-- Dokumen Asal dikemaskini kepada multiple -->
             <div class="form-group">
                 <label>Dokumen Asal (Boleh pilih lebih daripada satu):</label>
                 <input type="file" name="dokumen_asal[]" accept=".pdf,.jpg,.png" multiple required>
@@ -273,8 +309,56 @@ if (isset($_GET['padam_id'])) {
                 <input type="file" name="dokumen_minit" accept=".pdf,.jpg,.png" required>
             </div>
             
-            <button type="submit">Hantar Sekarang!</button>
+            <button type="submit"><i class="fa-solid fa-paper-plane"></i> Hantar Sekarang!</button>
         </form>
+
+        <!-- SEKSYEN BUKTI / REKOD MAKLUMAN YANG TELAH DIHANTAR -->
+        <h4><i class="fa-solid fa-clipboard-check"></i> Bukti / Rekod Makluman Terdahulu</h4>
+        <div style="max-height: 180px; overflow-y: auto;">
+            <table class="bukti-table">
+                <thead>
+                    <tr>
+                        <th>Tarikh & Masa</th>
+                        <th>Pihak / Staf Penerima</th>
+                        <th>Dokumen / Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php
+                    try {
+                        // Semak jika jadual log makluman wujud (cth: minit_surat_log atau makluman_log)
+                        // Anda boleh sesuaikan nama table jika berbeza di database anda
+                        $stmt_bukti = $pdo->prepare("SELECT * FROM makluman_log WHERE surat_id = ? ORDER BY id DESC");
+                        $stmt_bukti->execute([$id]);
+                        $log_rows = $stmt_bukti->fetchAll(PDO::FETCH_ASSOC);
+
+                        if ($log_rows && count($log_rows) > 0) {
+                            foreach ($log_rows as $log) {
+                                $tarikh_hantar = htmlspecialchars($log['created_at'] ?? '-');
+                                $penerima = htmlspecialchars($log['nama_staf'] ?? '-');
+                                $info_doc = htmlspecialchars($log['keterangan'] ?? 'Berjaya Dimaklumkan');
+                                
+                                echo "<tr>
+                                        <td>{$tarikh_hantar}</td>
+                                        <td>{$penerima}</td>
+                                        <td><span style='color: #2e7d32; font-weight: bold;'><i class='fa-solid fa-circle-check'></i> {$info_doc}</span></td>
+                                      </tr>";
+                            }
+                        } else {
+                            echo "<tr><td colspan='3' style='text-align: center; color: #795548;'>Tiada rekod makluman dihantar lagi untuk surat ini.</td></tr>";
+                        }
+                    } catch (PDOException $e) {
+                        // Jika table belum wujud di database, papar mesej panduan mesra
+                        echo "<tr><td colspan='3' style='text-align: center; color: #c62828;'>Sila pastikan jadual log makluman wujud dalam database untuk memaparkan bukti.</td></tr>";
+                    }
+                    ?>
+                </tbody>
+            </table>
+        </div>
+
+        <div style="text-align: center;">
+            <a href="homeadmin.php" class="btn-back-home"><i class="fa-solid fa-arrow-left"></i> Kembali ke Dashboard</a>
+        </div>
     </div>
 
     <script>
@@ -295,3 +379,4 @@ if (isset($_GET['padam_id'])) {
 
 </body>
 </html>
+<?php ob_end_flush(); ?>
