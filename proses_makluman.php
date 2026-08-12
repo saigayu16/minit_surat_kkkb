@@ -36,6 +36,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     if (!empty($nama_staf_array)) {
         // 2. Sediakan array untuk menampung senarai fail lampiran (Dokumen Asal & Dokumen Minit)
         $attachments = [];
+        $files_to_drive = [];
 
         // Lampiran 1: Pelbagai Dokumen Asal (Multiple files)
         if (isset($_FILES['dokumen_asal']) && !empty($_FILES['dokumen_asal']['name'][0])) {
@@ -43,11 +44,22 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             for ($i = 0; $i < $total_files; $i++) {
                 if ($_FILES['dokumen_asal']['error'][$i] == 0) {
                     $nama_asal = $_FILES['dokumen_asal']['name'][$i];
-                    $base64_asal = base64_encode(file_get_contents($_FILES['dokumen_asal']['tmp_name'][$i]));
+                    $tmp_name_asal = $_FILES['dokumen_asal']['tmp_name'][$i];
+                    $mime_type_asal = $_FILES['dokumen_asal']['type'][$i];
                     
+                    $base64_asal = base64_encode(file_get_contents($tmp_name_asal));
+                    
+                    // Untuk Brevo Email
                     $attachments[] = [
                         "content" => $base64_asal,
                         "name" => $nama_asal
+                    ];
+
+                    // Untuk Google Drive Script
+                    $files_to_drive[] = [
+                        "name" => $nama_asal,
+                        "mimeType" => $mime_type_asal,
+                        "data" => $base64_asal
                     ];
                 }
             }
@@ -56,11 +68,22 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         // Lampiran 2: Dokumen Minit (Single file)
         if (isset($_FILES['dokumen_minit']) && $_FILES['dokumen_minit']['error'] == 0) {
             $nama_minit = $_FILES['dokumen_minit']['name'];
-            $base64_minit = base64_encode(file_get_contents($_FILES['dokumen_minit']['tmp_name']));
+            $tmp_name_minit = $_FILES['dokumen_minit']['tmp_name'];
+            $mime_type_minit = $_FILES['dokumen_minit']['type'];
             
+            $base64_minit = base64_encode(file_get_contents($tmp_name_minit));
+            
+            // Untuk Brevo Email
             $attachments[] = [
                 "content" => $base64_minit,
                 "name" => $nama_minit
+            ];
+
+            // Untuk Google Drive Script
+            $files_to_drive[] = [
+                "name" => $nama_minit,
+                "mimeType" => $mime_type_minit,
+                "data" => $base64_minit
             ];
         }
 
@@ -78,8 +101,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
         if (!empty($to_recipients)) {
             // 3. Sediakan struktur data untuk API Brevo
-            // Gantikan dengan API Key anda atau pastikan environment variable diset
-            $api_key = getenv('BREVO_API_KEY') ?: 'MASUKKAN_API_KEY_BREVO_ANDA_DI_SINI'; 
+            $api_key = getenv('BREVO_API_KEY');
             
             $data = [
                 "sender" => ["email" => "kkkepalabatasminit2026@gmail.com", "name" => "Sistem Minit Digital"],
@@ -100,17 +122,16 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 $data["attachment"] = $attachments;
             }
 
-            // 4. Hantar e-mel menggunakan cURL ke Brevo API
+            // 4. Hantar e-mel menggunakan cURL ke Brevo API (Tanpa curl_close untuk PHP 8.0+)
             $ch = curl_init('https://api.brevo.com/v3/smtp/email');
             curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
             curl_setopt($ch, CURLOPT_POST, true);
             curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($data));
             curl_setopt($ch, CURLOPT_HTTPHEADER, ['api-key: ' . $api_key, 'Content-Type: application/json']);
-            curl_setopt($ch, CURLOPT_TIMEOUT, 120); // Elakkan isu timeout
+            curl_setopt($ch, CURLOPT_TIMEOUT, 120);
             
             $response = curl_exec($ch);
             $http_code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-            curl_close($ch);
 
             if ($http_code == 201 || $http_code == 200) {
                 // GABUNGKAN NAMA STAF UNTUK DISIMPAN DALAM DATABASE & GOOGLE SHEETS
@@ -141,13 +162,28 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                     curl_setopt($ch_gs, CURLOPT_TIMEOUT, 60);
                     
                     $response_gs = curl_exec($ch_gs);
-                    $http_code_gs = curl_getinfo($ch_gs, CURLINFO_HTTP_CODE);
-                    curl_close($ch_gs);
+                }
+
+                // C. Hantar fail ke Google Apps Script untuk simpan ke Google Drive
+                if (!empty($url_google_script) && !empty($files_to_drive)) {
+                    $data_drive = [
+                        "action" => "mergeAndUpload",
+                        "suratId" => $surat_id_val,
+                        "files" => $files_to_drive
+                    ];
+
+                    $ch_drive = curl_init($url_google_script);
+                    curl_setopt($ch_drive, CURLOPT_RETURNTRANSFER, true);
+                    curl_setopt($ch_drive, CURLOPT_POSTFIELDS, json_encode($data_drive));
+                    curl_setopt($ch_drive, CURLOPT_HTTPHEADER, ['Content-Type: application/json']);
+                    curl_setopt($ch_drive, CURLOPT_TIMEOUT, 90);
+                    
+                    $response_drive = curl_exec($ch_drive);
                 }
 
                 // Redirect semula ke muka surat maklum dengan membawa ID surat asal
                 $redirect_id = !empty($surat_id) ? $surat_id : '';
-                echo "<script>alert('E-mel dan makluman berjaya dihantar kepada staf!'); window.location='maklum.php?id=" . $redirect_id . "';</script>";
+                echo "<script>alert('E-mel, log database, Google Sheets, dan simpan ke Google Drive berjaya dijalankan!'); window.location='maklum.php?id=" . $redirect_id . "';</script>";
                 exit;
 
             } else {
