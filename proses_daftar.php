@@ -48,6 +48,11 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         curl_setopt($ch_drive, CURLOPT_RETURNTRANSFER, true);
         curl_setopt($ch_drive, CURLOPT_FOLLOWLOCATION, true);
         curl_setopt($ch_drive, CURLOPT_HTTPHEADER, ['Content-Type: application/json']);
+        
+        // --- TAMBAHAN UNTUK MENGELAKKAN TIMEOUT 30 SAAT ---
+        curl_setopt($ch_drive, CURLOPT_TIMEOUT, 120); // Had masa dinaikkan kepada 120 saat (2 minit)
+        // ------------------------------------------------
+        
         $drive_response = trim(curl_exec($ch_drive));
         $http_code_drive = curl_getinfo($ch_drive, CURLINFO_HTTP_CODE);
         
