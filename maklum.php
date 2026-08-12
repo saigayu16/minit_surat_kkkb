@@ -439,7 +439,7 @@ if (isset($_GET['padam_id'])) {
 
                 // Hantar ke endpoint Google Apps Script Web App anda
                 // Pastikan anda letak URL Apps Script web app anda di sini
-                const scriptURL = 'URL_GOOGLE_APPS_SCRIPT_ANDA_DI_SINI'; 
+                const scriptURL = 'https://script.google.com/macros/s/AKfycby2K31kMjzReZQU6YK63GGScf3RuLWbp8LrU2YRecHuv4FGx3VtJsKcXD6mbujL5w7j7w/exec'; 
                 
                 const response = await fetch(scriptURL, {
                     method: 'POST',
