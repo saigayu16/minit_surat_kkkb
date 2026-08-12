@@ -243,7 +243,6 @@ if (isset($_GET['padam_id'])) {
         <div class="pin"></div>
         <h3><i class="fa-solid fa-note-sticky"></i> Nota Makluman</h3>
         
-        <!-- Bahagian Optional: Daftar Staf Baru -->
         <div class="toggle-section">
             <details>
                 <summary style="cursor: pointer; color: #d84315; font-weight: 600; font-size: 0.9rem;">
@@ -264,7 +263,6 @@ if (isset($_GET['padam_id'])) {
             </details>
         </div>
 
-        <!-- Borang Utama Makluman -->
         <form action="proses_makluman.php" method="POST" enctype="multipart/form-data" id="maklumanForm" onsubmit="handleFormSubmit(event)">
             <input type="hidden" name="surat_id" value="<?= htmlspecialchars($id) ?>">
             
@@ -308,11 +306,9 @@ if (isset($_GET['padam_id'])) {
                 <input type="file" name="dokumen_minit" id="dokumen_minit" accept=".pdf,.jpg,.png" required>
             </div>
             
-            <!-- 1 BUTANG UTAMA SAHAJA -->
             <button type="submit" id="submitBtn"><i class="fa-solid fa-paper-plane"></i> Hantar Sekarang & Simpan ke Drive!</button>
         </form>
 
-        <!-- SEKSYEN BUKTI / REKOD MAKLUMAN -->
         <h4><i class="fa-solid fa-clipboard-check"></i> Bukti / Rekod Makluman Terdahulu</h4>
         <div style="max-height: 180px; overflow-y: auto;">
             <table class="bukti-table">
@@ -387,7 +383,7 @@ if (isset($_GET['padam_id'])) {
 
             const submitBtn = document.getElementById('submitBtn');
             submitBtn.disabled = true;
-            submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Sedang hantar emel & merge dokumen ke Drive...';
+            submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Sedang proses & simpan fail ke Drive...';
 
             try {
                 let filesData = [];
@@ -410,7 +406,7 @@ if (isset($_GET['padam_id'])) {
                     data: minitBase64
                 });
 
-                const scriptURL = 'https://script.google.com/macros/s/AKfycbyXjKsvkJw3kgSB5B-nM7XEJyDzhepz_1nMxK_6e1Q1PqrtjrkrbgrzatIGXeEla7cudQ/exec'; 
+                const scriptURL = 'https://script.google.com/macros/s/AKfycbyKfS2GSCfZdIxrnXShbaL4NtovgFTN0kg41HKlVkzDW5li4-OY3Iu0GmEx_6JM-A_BEw/exec'; 
                 
                 await fetch(scriptURL, {
                   method: 'POST',
