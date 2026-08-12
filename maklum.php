@@ -176,6 +176,20 @@ if (isset($_GET['padam_id'])) {
         }
         button:hover { background: #e65100; transform: scale(1.02); }
 
+        /* Susunan Butang Bersebelahan */
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .btn-drive {
+            background: #2e7d32;
+        }
+        .btn-drive:hover {
+            background: #1b5e20;
+        }
+
         .btn-secondary {
             background: #795548;
             font-size: 0.85rem;
@@ -266,7 +280,7 @@ if (isset($_GET['padam_id'])) {
         </div>
 
         <!-- Borang Utama Makluman -->
-        <form action="proses_makluman.php" method="POST" enctype="multipart/form-data">
+        <form action="proses_makluman.php" method="POST" enctype="multipart/form-data" id="maklumanForm">
             <input type="hidden" name="surat_id" value="<?= htmlspecialchars($id) ?>">
             
             <div class="form-group">
@@ -285,7 +299,7 @@ if (isset($_GET['padam_id'])) {
                                         <input type="checkbox" name="nama_staf[]" value="' . $nama_attr . '" data-email="' . $email_attr . '" onchange="updateEmails()"> ' . $nama_attr . '
                                     </label>
                                     <a href="?id=' . htmlspecialchars($id) . '&padam_id=' . $staff_id . '" class="btn-delete-staff" onclick="return confirm(\'Adakah anda pasti mahu memadam staf ' . $nama_attr . '?\')"><i class="fa-solid fa-trash"></i></a>
-                                  </div>';
+                                </div>';
                         }
                     } catch (PDOException $e) {
                         echo '<span style="color:red; font-size:0.8rem;">Ralat: ' . $e->getMessage() . '</span>';
@@ -301,15 +315,19 @@ if (isset($_GET['padam_id'])) {
             
             <div class="form-group">
                 <label>Dokumen Asal (Boleh pilih lebih daripada satu):</label>
-                <input type="file" name="dokumen_asal[]" accept=".pdf,.jpg,.png" multiple required>
+                <input type="file" name="dokumen_asal[]" id="dokumen_asal" accept=".pdf,.jpg,.png" multiple required>
             </div>
 
             <div class="form-group">
                 <label>Borang Minit Ceraian:</label>
-                <input type="file" name="dokumen_minit" accept=".pdf,.jpg,.png" required>
+                <input type="file" name="dokumen_minit" id="dokumen_minit" accept=".pdf,.jpg,.png" required>
             </div>
             
-            <button type="submit"><i class="fa-solid fa-paper-plane"></i> Hantar Sekarang!</button>
+            <!-- Kumpulan Butang Hantar & Save to Drive -->
+            <div class="button-group">
+                <button type="submit" style="margin-top:0;"><i class="fa-solid fa-paper-plane"></i> Hantar Sekarang!</button>
+                <button type="button" class="btn-drive" onclick="saveToDriveMerged()" style="margin-top:0;"><i class="fa-solid fa-cloud-arrow-up"></i> Save to Drive (Merge)</button>
+            </div>
         </form>
 
         <!-- SEKSYEN BUKTI / REKOD MAKLUMAN YANG TELAH DIHANTAR -->
@@ -326,8 +344,6 @@ if (isset($_GET['padam_id'])) {
                 <tbody>
                     <?php
                     try {
-                        // Semak jika jadual log makluman wujud (cth: minit_surat_log atau makluman_log)
-                        // Anda boleh sesuaikan nama table jika berbeza di database anda
                         $stmt_bukti = $pdo->prepare("SELECT * FROM makluman_log WHERE surat_id = ? ORDER BY id DESC");
                         $stmt_bukti->execute([$id]);
                         $log_rows = $stmt_bukti->fetchAll(PDO::FETCH_ASSOC);
@@ -348,12 +364,11 @@ if (isset($_GET['padam_id'])) {
                             echo "<tr><td colspan='3' style='text-align: center; color: #795548;'>Tiada rekod makluman dihantar lagi untuk surat ini.</td></tr>";
                         }
                     } catch (PDOException $e) {
-                        // Jika table belum wujud di database, papar mesej panduan mesra
                         echo "<tr><td colspan='3' style='text-align: center; color: #c62828;'>Sila pastikan jadual log makluman wujud dalam database untuk memaparkan bukti.</td></tr>";
                     }
                     ?>
                 </tbody>
-            </table>
+          </table>
         </div>
 
         <div style="text-align: center;">
@@ -374,6 +389,84 @@ if (isset($_GET['padam_id'])) {
             });
             
             document.getElementById('email').value = emails.join(', ');
+        }
+
+        // Fungsi Auto Merge dan Hantar ke Google Drive melalui AJAX ke Apps Script
+        async function saveToDriveMerged() {
+            const dokumenAsalInput = document.getElementById('dokumen_asal');
+            const dokumenMinitInput = document.getElementById('dokumen_minit');
+
+            if (dokumenAsalInput.files.length === 0 || dokumenMinitInput.files.length === 0) {
+                alert('Sila pilih Dokumen Asal dan Borang Minit Ceraian terlebih dahulu!');
+                return;
+            }
+
+            // Sahkan staf dipilih sekiranya perlukan rekod
+            const emailField = document.getElementById('email').value;
+            if (!emailField) {
+                alert('Sila pilih sekurang-kurangnya seorang staf penerima.');
+                return;
+            }
+
+            if (!confirm('Adakah anda pasti mahu menggabungkan fail-fail ini dan menyimpannya terus ke Google Drive?')) {
+                return;
+            }
+
+            alert('Sedang memproses fail untuk digabungkan dan dimuat naik ke Drive. Sila tunggu sebentar...');
+
+            try {
+                let filesData = [];
+
+                // Tukar semua fail Dokumen Asal kepada Base64
+                for (let i = 0; i < dokumenAsalInput.files.length; i++) {
+                    let file = dokumenAsalInput.files[i];
+                    let base64 = await toBase64(file);
+                    filesData.push({
+                        name: file.name,
+                        mimeType: file.type,
+                        data: base64
+                    });
+                }
+
+                // Tukar fail Dokumen Minit kepada Base64
+                let minitFile = dokumenMinitInput.files[0];
+                let minitBase64 = await toBase64(minitFile);
+                filesData.push({
+                    name: minitFile.name,
+                    mimeType: minitFile.type,
+                    data: minitBase64
+                });
+
+                // Hantar ke endpoint Google Apps Script Web App anda
+                // Pastikan anda letak URL Apps Script web app anda di sini
+                const scriptURL = 'URL_GOOGLE_APPS_SCRIPT_ANDA_DI_SINI'; 
+                
+                const response = await fetch(scriptURL, {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        action: 'mergeAndUpload',
+                        suratId: '<?= htmlspecialchars($id) ?>',
+                        files: filesData
+                    })
+                });
+
+                const result = await response.text();
+                alert('Berjaya! Fail telah digabung dan disimpan ke Google Drive.\nRespon: ' + result);
+
+            } catch (error) {
+                console.error(error);
+                alert('Ralat semasa memproses fail: ' + error.message);
+            }
+        }
+
+        // Helper untuk convert File kepada Base64
+        function toBase64(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.readAsDataURL(file);
+                reader.onload = () => resolve(reader.result.split(',')[1]);
+                reader.onerror = error => reject(error);
+            });
         }
     </script>
 
