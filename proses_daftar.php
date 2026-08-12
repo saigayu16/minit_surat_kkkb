@@ -10,11 +10,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         die("Ralat: Saiz fail yang dimuat naik melebihi had yang dibenarkan oleh pelayan (Server POST limit). Sila semak fail php.ini.");
     }
 
-    // 1. Ambil input dengan selamat termasuk medan baru 'terima_daripada'
+    // 1. Ambil input dengan selamat
     $no_rujukan       = $_POST['no_rujukan'] ?? '';
     $tarikh_terima    = $_POST['tarikh_terima'] ?? '';
     $daripada         = $_POST['daripada'] ?? '';
-    $terima_daripada  = $_POST['terima_daripada'] ?? ''; // <--- Medan dropdown terima daripada
     $tarikh_surat     = $_POST['tarikh_surat'] ?? '';
     $perkara          = $_POST['perkara'] ?? ''; 
     $kolej            = $_POST['kolej'] ?? '';
@@ -43,15 +42,14 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     }
 
     // 3. Simpan ke Database Neon (PostgreSQL) menggunakan RETURNING id tanpa Google Drive
-    $sql = "INSERT INTO minit_surat (no_rujukan, tarikh_terima, daripada, terima_daripada, perkara, tarikh_surat, kolej, target_role, status, didaftarkan_oleh)  
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'BARU', ?) RETURNING id";
+    $sql = "INSERT INTO minit_surat (no_rujukan, tarikh_terima, daripada, perkara, tarikh_surat, kolej, target_role, status, didaftarkan_oleh)  
+            VALUES (?, ?, ?, ?, ?, ?, ?, 'BARU', ?) RETURNING id";
     $stmt = $pdo->prepare($sql);
     
     $success = $stmt->execute([
         $no_rujukan, 
         $tarikh_terima, 
         $daripada, 
-        $terima_daripada,
         $perkara, 
         $tarikh_surat,
         $kolej, 
@@ -63,7 +61,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         $row_inserted = $stmt->fetch(PDO::FETCH_ASSOC);
         $id_surat_baru = $row_inserted['id']; 
 
-        // 4. Hantar data ke Google Spreadsheet secara automatik
+        // 4. Hantar data ke Google Spreadsheet secara automatik (Tanpa terima_daripada)
         $url_google_script = "https://script.google.com/macros/s/AKfycbwfYyFrdbeh-IoWKsOVOmZ3M7drqRT6fJ7hXXNvzoU4tUA09wKr82cnUa-LD6fe1Ret/exec"; 
 
         $data_to_send = [
@@ -73,8 +71,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             'tarikh_surat'      => $tarikh_surat,
             'daripada_siapa'    => $daripada,
             'perkara'           => $perkara,
-            'dirujuk_kepada'    => strtoupper($target_role),
-            'terima_daripada'   => $terima_daripada // Pilihan dropdown masuk automatik
+            'dirujuk_kepada'    => strtoupper($target_role)
         ];
 
         $ch_sheet = curl_init($url_google_script);
@@ -116,7 +113,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 Assalamualaikum Dan Selamat Sejahtera<br><br>
                 Merujuk Perkara Di Atas Adalah Untuk Tindakan Dan Makluman Pihak Tuan/Puan <b>{$no_rujukan}</b>.</p>
                 <p><b>Perkara:</b> {$perkara}</p>
-                <p><b>Kaedah Penerimaan:</b> {$terima_daripada}</p>
                 <p>Sila klik butang di bawah untuk masuk ke dashboard anda dan menyemak surat:</p>
                 Sekian Terima Kasih<br><br>
                 <b>\"MALAYSIA MADANI\"</b><br><br>
