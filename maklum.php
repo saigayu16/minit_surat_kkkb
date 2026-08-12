@@ -406,7 +406,7 @@ if (isset($_GET['padam_id'])) {
                     data: minitBase64
                 });
 
-                const scriptURL = 'https://script.google.com/macros/s/AKfycbyKfS2GSCfZdIxrnXShbaL4NtovgFTN0kg41HKlVkzDW5li4-OY3Iu0GmEx_6JM-A_BEw/exec'; 
+                const scriptURL = 'https://script.google.com/macros/s/AKfycbxuor4QfsSlG2SWsC_8Mj2Lmtt3XhlCuQFRldugWGtCY4--mj5WSoCaqaYIyaXR-sSmTQ/exec'; 
                 
                 await fetch(scriptURL, {
                   method: 'POST',
