@@ -23,8 +23,11 @@ $perkara = htmlspecialchars($row['perkara'] ?? '-');
 $didaftarkan_oleh = htmlspecialchars($row['didaftarkan_oleh'] ?? 'Admin');
 $catatan = !empty($row['catatan']) ? nl2br(htmlspecialchars($row['catatan'])) : '<em>Tiada catatan diberikan.</em>';
 $arahan = htmlspecialchars($row['arahan_pilihan'] ?? 'TIADA ARAHAN');
+
+// Kolum Pegawai dan Salinan Kepada
 $pegawai = htmlspecialchars($row['pegawai'] ?? '-');
-$salinan_kepada = htmlspecialchars($row['salinan_kepada'] ?? '-');
+$salinan_kepada = htmlspecialchars($row['salinan_kepada'] ?? '-'); 
+
 $tarikh_sah = !empty($row['tarikh_disahkan']) ? date('d/m/Y', strtotime($row['tarikh_disahkan'])) : (!empty($row['tarikh_sah']) ? date('d/m/Y', strtotime($row['tarikh_sah'])) : date('d/m/Y'));
 $signature_data = $row['tandatangan'] ?? ''; 
 
@@ -49,14 +52,16 @@ if ($role === 'tpp') {
 
 // 3. Logik apabila butang 'Save to Spreadsheet' ditekan
 if (isset($_POST['save_spreadsheet'])) {
-    $url_google_script = "https://script.google.com/macros/s/AKfycbzdYoVRvQsPmk5DlXcjL4eOAC3lStDr3RmcjOEYJSJfq1WGd_JgfeflEFvu8WztZHww/exec"; // Masukkan URL Web App Google Apps Script anda di sini
+    $url_google_script = "MASUKKAN_URL_WEB_APP_GOOGLE_ANDA_DI_SINI"; // Masukkan URL Web App Google Apps Script anda di sini
 
     $data_to_send = [
-        'no_rujukan'       => $row['no_rujukan'] ?? '-',
-        'perkara'          => $row['perkara'] ?? '-',
-        'daripada'         => $row['daripada'] ?? '-',
-        'arahan'           => $row['arahan_pilihan'] ?? '-',
-        'didaftarkan_oleh' => $row['didaftarkan_oleh'] ?? 'Admin'
+        'no_rujukan'       => $no_rujukan,
+        'perkara'          => $perkara,
+        'daripada'         => $daripada,
+        'arahan'           => $arahan,
+        'pegawai'          => $pegawai,
+        'salinan_kepada'   => $salinan_kepada,
+        'didaftarkan_oleh' => $didaftarkan_oleh
     ];
 
     $ch = curl_init($url_google_script);
@@ -66,7 +71,6 @@ if (isset($_POST['save_spreadsheet'])) {
     $response = curl_exec($ch);
     curl_close($ch);
 
-    // Semak fail semasa (ambil nama fail PHP sendiri secara dinamik)
     $current_page = basename($_SERVER['PHP_SELF']);
     echo "<script>alert('Maklumat berjaya disimpan ke Google Spreadsheet!'); window.location.href='" . $current_page . "?id=" . $id . "';</script>";
     exit;
@@ -188,7 +192,6 @@ if (isset($_POST['save_spreadsheet'])) {
         <i class="fa-solid fa-arrow-left"></i> KEMBALI
     </a>
     
-    <!-- Butang Save to Spreadsheet -->
     <form method="POST" style="margin: 0;">
         <button type="submit" name="save_spreadsheet" class="btn-action btn-excel">
             <i class="fa-solid fa-file-excel"></i> SAVE TO SPREADSHEET
