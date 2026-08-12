@@ -120,7 +120,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 }
 
                 // B. (Pilihan) Hantar data secara auto ke Google Sheets (Google Drive)
-                $url_google_script = "https://script.google.com/macros/s/AKfycbzgd5c1Y6XGR7QWQ2NsQn8jMDhxOz6l3KaDt1jNNYerv-EcC83M2SKL8SL2WpPcjeetqw/exec"; 
+                $url_google_script = "https://script.google.com/macros/s/AKfycbzcrzX07aLWHi2krdCqIGTvDSFAaFmp5YjRSdUDDsfAFIrHjV1rywUCHyDmnDDcxVGy2w/exec"; 
                 if (!empty($url_google_script)) {
                     $data_to_sheets = [
                         'no_rujukan' => $no_rujukan_surat,
