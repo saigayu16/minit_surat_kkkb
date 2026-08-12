@@ -63,7 +63,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         $row_inserted = $stmt->fetch(PDO::FETCH_ASSOC);
         $id_surat_baru = $row_inserted['id']; 
 
-        // 4. Hantar data ke Google Spreadsheet secara automatik (Termasuk terima_daripada)
+        /* 
+        // 4. BAHAGIAN GOOGLE SPREADSHEET DITUTUP (DIKOMEN)
+        // Data TIDAK LAGI dihantar ke Google Spreadsheet semasa proses daftar.
+        
         $url_google_script = "https://script.google.com/macros/s/AKfycbwfYyFrdbeh-IoWKsOVOmZ3M7drqRT6fJ7hXXNvzoU4tUA09wKr82cnUa-LD6fe1Ret/exec"; 
 
         $data_to_send = [
@@ -72,7 +75,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             'no_fail'           => $kolej,
             'tarikh_surat'      => $tarikh_surat,
             'daripada_siapa'    => $daripada,
-            'terima_daripada'   => $terima_daripada, // <-- Hantar nilai ke Google Script
+            'terima_daripada'   => $terima_daripada, 
             'perkara'           => $perkara,
             'dirujuk_kepada'    => strtoupper($target_role)
         ];
@@ -83,6 +86,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         curl_setopt($ch_sheet, CURLOPT_HTTPHEADER, ['Content-Type: application/json']);
         curl_exec($ch_sheet);
         curl_close($ch_sheet);
+        */
 
         // 5. Tentukan Halaman Dashboard Mengikut Logik Anda
         $protocol = isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? "https" : "http";
@@ -105,7 +109,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
         $link_sistem = $protocol . "://$host/$halaman_tujuan?id=" . $id_surat_baru; 
 
-        // 6. Integrasi API Brevo
+        // 6. Integrasi API Brevo (Penghantaran E-mel)
         $api_key = getenv('BREVO_API_KEY');
         
         $data = [
@@ -138,7 +142,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         curl_exec($ch);
         curl_close($ch);
 
-        echo "<script>alert('Surat telah didaftarkan, dimasukkan ke Spreadsheet, dan e-mel berjaya dihantar!'); window.location='homeadmin.php';</script>";
+        echo "<script>alert('Surat telah didaftarkan, disimpan dalam database, dan e-mel berjaya dihantar!'); window.location='homeadmin.php';</script>";
     } else {
         $errorInfo = $stmt->errorInfo();
         echo "Ralat Database: " . $errorInfo[2];
