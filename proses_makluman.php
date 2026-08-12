@@ -1,19 +1,33 @@
-<?php
+<?php 
 include('db.php'); // Menjangkakan sambungan menggunakan $pdo
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-    $email_staf_input = $_POST['email'] ?? ''; // Mengandungi senarai e-mel dipisahkan koma (cth: a@mail.com, b@mail.com)
+    $surat_id = $_POST['surat_id'] ?? ''; // Ambil ID surat dari form
+    $email_staf_input = $_POST['email'] ?? ''; 
     $nama_staf_array  = $_POST['nama_staf'] ?? []; // Array nama staf yang dipilih
   
-    // Auto-baca teks 'perkara' daripada surat yang PALING TERKINI (baru sahaja didaftarkan oleh admin)
+    // Auto-baca teks 'perkara' daripada surat yang PALING TERKINI atau mengikut ID surat
     $perkara = "Notifikasi Dokumen Asal dan Minit Surat Baharu"; // Nilai default jika tiada rekod
     
-    $stmt_perkara = $pdo->prepare("SELECT perkara FROM minit_surat ORDER BY id DESC LIMIT 1");
-    $stmt_perkara->execute();
-    $row_perkara = $stmt_perkara->fetch(PDO::FETCH_ASSOC);
+    // Jika ada surat_id, guna rujukan ID tersebut, jika tidak guna yang latest
+    if (!empty($surat_id)) {
+        $stmt_perkara = $pdo->prepare("SELECT perkara, no_rujukan FROM minit_surat WHERE id = ? LIMIT 1");
+        $stmt_perkara->execute([$surat_id]);
+    } else {
+        $stmt_perkara = $pdo->prepare("SELECT perkara, no_rujukan FROM minit_surat ORDER BY id DESC LIMIT 1");
+        $stmt_perkara->execute();
+    }
     
-    if ($row_perkara && !empty($row_perkara['perkara'])) {
-        $perkara = $row_perkara['perkara']; // Paparkan tajuk sebenar yang ditaip admin
+    $row_perkara = $stmt_perkara->fetch(PDO::FETCH_ASSOC);
+    $no_rujukan_surat = "-";
+    
+    if ($row_perkara) {
+        if (!empty($row_perkara['perkara'])) {
+            $perkara = $row_perkara['perkara'];
+        }
+        if (!empty($row_perkara['no_rujukan'])) {
+            $no_rujukan_surat = $row_perkara['no_rujukan'];
+        }
     }
 
     if (!empty($nama_staf_array)) {
@@ -90,9 +104,43 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             curl_setopt($ch, CURLOPT_HTTPHEADER, ['api-key: ' . $api_key, 'Content-Type: application/json']);
             $response = curl_exec($ch);
             $http_code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+            curl_close($ch);
 
             if ($http_code == 201 || $http_code == 200) {
-                echo "<script>alert('E-mel beserta Dokumen Asal (Multiple) dan Dokumen Minit berjaya dihantar kepada staf!'); window.location='homeadmin.php';</script>";
+                // GABUNGKAN NAMA STAF UNTUK DISIMPAN DALAM DATABASE & GOOGLE SHEETS
+                $senarai_staf_string = implode(', ', $nama_staf_array);
+                $surat_id_val = !empty($surat_id) ? intval($surat_id) : 0;
+
+                try {
+                    // A. Simpan rekod ke dalam database PostgreSQL (jadual makluman_log)
+                    $stmt_log = $pdo->prepare("INSERT INTO makluman_log (surat_id, nama_staf, keterangan) VALUES (?, ?, ?)");
+                    $stmt_log->execute([$surat_id_val, $senarai_staf_string, 'Berjaya Dimaklumkan']);
+                } catch (PDOException $e) {
+                    // Abaikan jika ralat log, atau papar amaran kecil
+                }
+
+                // B. (Pilihan) Hantar data secara auto ke Google Sheets (Google Drive)
+                // Masukkan URL Web App Google Apps Script anda di sini jika mahu guna fungsi Excel Drive:
+                $url_google_script = ""; 
+                if (!empty($url_google_script)) {
+                    $data_to_sheets = [
+                        'no_rujukan' => $no_rujukan_surat,
+                        'perkara'    => $perkara,
+                        'nama_staf'  => $senarai_staf_string
+                    ];
+                    $ch_gs = curl_init($url_google_script);
+                    curl_setopt($ch_gs, CURLOPT_RETURNTRANSFER, true);
+                    curl_setopt($ch_gs, CURLOPT_POSTFIELDS, json_encode($data_to_sheets));
+                    curl_setopt($ch_gs, CURLOPT_HTTPHEADER, ['Content-Type: application/json']);
+                    curl_exec($ch_gs);
+                    curl_close($ch_gs);
+                }
+
+                // Redirect semula ke muka surat maklum dengan membawa ID surat asal
+                $redirect_id = !empty($surat_id) ? $surat_id : '';
+                echo "<script>alert('E-mel dan makluman berjaya dihantar kepada staf!'); window.location='maklum.php?id=" . $redirect_id . "';</script>";
+                exit;
+
             } else {
                 echo "E-mel gagal dihantar. Sila semak API Key Brevo atau saiz keseluruhan fail lampiran di pelayan. Response: " . $response;
             }
