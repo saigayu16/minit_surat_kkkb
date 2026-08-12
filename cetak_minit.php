@@ -21,7 +21,7 @@ $no_fail = htmlspecialchars($row['no_fail'] ?? '-');
 $tarikh_surat = !empty($row['tarikh_surat']) ? date('d/m/Y', strtotime($row['tarikh_surat'])) : '-';
 $tarikh_terima = !empty($row['tarikh_terima']) ? date('d/m/Y', strtotime($row['tarikh_terima'])) : '-';
 $daripada = htmlspecialchars($row['daripada'] ?? '-');
-$terima_daripada = htmlspecialchars($row['terima_daripada'] ?? '-'); // <-- Baca nilai terima_daripada dari DB
+$terima_daripada = htmlspecialchars($row['terima_daripada'] ?? '-'); // Membaca nilai dari DB
 $kepada = htmlspecialchars($row['target_role'] ?? '-');
 $perkara = htmlspecialchars($row['perkara'] ?? '-'); 
 $didaftarkan_oleh = htmlspecialchars($row['didaftarkan_oleh'] ?? 'Admin');
@@ -65,7 +65,7 @@ if (isset($_POST['save_spreadsheet'])) {
         'daripada_siapa'    => $daripada,
         'perkara'           => $perkara,
         'dirujuk_kepada'    => strtoupper($kepada),
-        'terima_daripada'   => $row['terima_daripada'] ?? '' // <-- Hantar nilai asal ke Google Spreadsheet
+        'terima_daripada'   => $row['terima_daripada'] ?? '' 
     ];
 
     $ch = curl_init($url_google_script);
