@@ -52,7 +52,7 @@ if ($role === 'tpp') {
 
 // 3. Logik apabila butang 'Save to Spreadsheet' ditekan
 if (isset($_POST['save_spreadsheet'])) {
-    $url_google_script = "https://script.google.com/macros/s/AKfycbwfYyFrdbeh-IoWKsOVOmZ3M7drqRT6fJ7hXXNvzoU4tUA09wKr82cnUa-LD6fe1Ret/exec"; // Masukkan URL Web App Google Apps Script anda di sini
+    $url_google_script = "https://script.google.com/macros/s/AKfycbwfYyFrdbeh-IoWKsOVOmZ3M7drqRT6fJ7hXXNvzoU4tUA09wKr82cnUa-LD6fe1Ret/exec"; 
 
     $data_to_send = [
         'no_rujukan'       => $no_rujukan,
@@ -154,7 +154,7 @@ if (isset($_POST['save_spreadsheet'])) {
     
     <div class="perkara-container">
         <div class="perkara-title">Perkara / Tajuk Surat:</div>
-        <div class="perkara-text"><?= $perkara ?></div>
+        <div class="perkara-text" id="surat-perkara"><?= $perkara ?></div>
     </div>
      
     <table width="100%" cellpadding="10" border="0" style="border-collapse: collapse; margin-bottom: 20px;">
@@ -198,10 +198,24 @@ if (isset($_POST['save_spreadsheet'])) {
         </button>
     </form>
 
-    <button class="btn-action btn-print" onclick="window.print()">
-        <i class="fa-solid fa-print"></i> CETAK BORANG RASMI
+    <button class="btn-action btn-print" onclick="cetakPDFDinamik()">
+        <i class="fa-solid fa-print"></i> CETAK / SAVE PDF
     </button>
 </div>
+
+<script>
+function cetakPDFDinamik() {
+    // Ambil teks dari elemen perkara dan buang tag HTML jika ada
+    var elemenPerkara = document.getElementById('surat-perkara');
+    var tajukSurat = elemenPerkara ? elemenPerkara.innerText.trim() : "Kertas_Minit";
+    
+    // Tukar tajuk dokumen sementara supaya pelayar (browser) mencadangkan nama ini apabila "Save as PDF" dipilih
+    document.title = tajukSurat;
+    
+    // Buka dialog cetak pelayar
+    window.print();
+}
+</script>
 
 </body>
 </html>
