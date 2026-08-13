@@ -1,28 +1,24 @@
 <?php
 ini_set('display_errors', 1);
-error_reporting(E_ALL);
+error_reporting(E_ALL & ~E_DEPRECATED); // Abaikan amaran deprecated untuk curl_close
 session_start();
-include('db.php'); // Menjangkakan sambungan menggunakan $pdo
+include('db.php'); 
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-    // Semak jika data POST kosong disebabkan had saiz fail pelayan dilangkau
     if (empty($_POST) && empty($_FILES)) {
         die("Ralat: Saiz fail yang dimuat naik melebihi had yang dibenarkan oleh pelayan (Server POST limit). Sila semak fail php.ini.");
     }
 
-    // 1. Ambil input dan hadkan panjang aksara (mengelakkan ralat VARCHAR limit)
     $no_rujukan      = mb_substr(trim($_POST['no_rujukan'] ?? ''), 0, 50);
     $tarikh_terima   = trim($_POST['tarikh_terima'] ?? '');
     $daripada        = mb_substr(trim($_POST['daripada'] ?? ''), 0, 255);
     $terima_daripada = mb_substr(trim($_POST['terima_daripada'] ?? ''), 0, 100); 
-    $perkara         = trim($_POST['perkara'] ?? ''); // Boleh panjang, pastikan jenis kolum di DB adalah TEXT
+    $perkara         = trim($_POST['perkara'] ?? ''); 
     $kolej           = mb_substr(trim($_POST['kolej'] ?? ''), 0, 100);
     $target_role     = mb_substr(trim($_POST['target_role'] ?? ''), 0, 50);
     
-    // Ambil nama admin yang sedang log masuk dari session
     $didaftarkan_oleh = $_SESSION['user_name'] ?? 'Admin Sistem';
 
-    // 2. Dapatkan Emel Penerima Berdasarkan Role menggunakan PDO ($pdo)
     $stmt_email = $pdo->prepare("SELECT email FROM users WHERE role = ? LIMIT 1");
     $stmt_email->execute([$target_role]);
     $user_row = $stmt_email->fetch(PDO::FETCH_ASSOC);
@@ -32,12 +28,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         die("Ralat: Tiada emel didaftarkan untuk peranan (role) $target_role");
     }
 
-    // Tetapkan nilai awal
     $drive_file_id = "GAGAL_UPLOAD";
     $base64_file = null;
     $file_name = null;
 
-    // 3. Proses Fail ke Google Drive
     if (isset($_FILES['fail_surat']) && $_FILES['fail_surat']['error'] == 0) {
         $file_name = $_FILES['fail_surat']['name'];
         $base64_file = base64_encode(file_get_contents($_FILES['fail_surat']['tmp_name']));
@@ -52,14 +46,12 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         
         $drive_response = trim(curl_exec($ch_drive));
         $http_code_drive = curl_getinfo($ch_drive, CURLINFO_HTTP_CODE);
-        curl_close($ch_drive);
         
         if ($http_code_drive == 200 && strpos($drive_response, 'ERROR') === false) {
             $drive_file_id = $drive_response;
         }
     }
 
-    // 4. Simpan ke Database Neon (PostgreSQL)
     $sql = "INSERT INTO minit_surat (no_rujukan, tarikh_terima, daripada, terima_daripada, perkara, kolej, target_role, status, drive_file_id, didaftarkan_oleh)  
             VALUES (?, ?, ?, ?, ?, ?, ?, 'BARU', ?, ?) RETURNING id";
     $stmt = $pdo->prepare($sql);
@@ -80,7 +72,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         $row_inserted = $stmt->fetch(PDO::FETCH_ASSOC);
         $id_surat_baru = $row_inserted['id']; 
 
-        // 5. Tentukan Halaman Dashboard Mengikut Logik Anda
         $protocol = isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? "https" : "http";
         $host = $_SERVER['HTTP_HOST'];
         
@@ -101,7 +92,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
         $link_sistem = $protocol . "://$host/$halaman_tujuan?id=" . $id_surat_baru; 
 
-        // 6. Integrasi API Brevo
         $api_key = getenv('BREVO_API_KEY');
         
         $data = [
@@ -129,7 +119,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($data));
         curl_setopt($ch, CURLOPT_HTTPHEADER, ['api-key: ' . $api_key, 'Content-Type: application/json']);
         curl_exec($ch);
-        curl_close($ch);
 
         echo "<script>alert('Surat telah didaftarkan dan e-mel berjaya dihantar!'); window.location='homeadmin.php';</script>";
     } else {
