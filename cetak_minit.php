@@ -73,7 +73,6 @@ if (isset($_POST['save_spreadsheet'])) {
     curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($data_to_send));
     curl_setopt($ch, CURLOPT_HTTPHEADER, ['Content-Type: application/json']);
     $response = curl_exec($ch);
-    curl_close($ch);
 
     $current_page = basename($_SERVER['PHP_SELF']);
     echo "<script>alert('Maklumat berjaya disimpan ke Google Spreadsheet!'); window.location.href='" . $current_page . "?id=" . $id . "';</script>";
