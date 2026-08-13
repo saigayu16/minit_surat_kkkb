@@ -10,14 +10,14 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         die("Ralat: Saiz fail yang dimuat naik melebihi had yang dibenarkan oleh pelayan (Server POST limit). Sila semak fail php.ini.");
     }
 
-    // 1. Ambil input dengan selamat (termasuk terima_daripada)
-    $no_rujukan      = $_POST['no_rujukan'] ?? '';
-    $tarikh_terima   = $_POST['tarikh_terima'] ?? '';
-    $daripada        = $_POST['daripada'] ?? '';
-    $terima_daripada = $_POST['terima_daripada'] ?? ''; // Diambil dari borang
-    $perkara         = $_POST['perkara'] ?? '';
-    $kolej           = $_POST['kolej'] ?? '';
-    $target_role     = $_POST['target_role'] ?? '';
+    // 1. Ambil input dan hadkan panjang aksara (mengelakkan ralat VARCHAR limit)
+    $no_rujukan      = mb_substr(trim($_POST['no_rujukan'] ?? ''), 0, 50);
+    $tarikh_terima   = trim($_POST['tarikh_terima'] ?? '');
+    $daripada        = mb_substr(trim($_POST['daripada'] ?? ''), 0, 255);
+    $terima_daripada = mb_substr(trim($_POST['terima_daripada'] ?? ''), 0, 100); 
+    $perkara         = trim($_POST['perkara'] ?? ''); // Boleh panjang, pastikan jenis kolum di DB adalah TEXT
+    $kolej           = mb_substr(trim($_POST['kolej'] ?? ''), 0, 100);
+    $target_role     = mb_substr(trim($_POST['target_role'] ?? ''), 0, 50);
     
     // Ambil nama admin yang sedang log masuk dari session
     $didaftarkan_oleh = $_SESSION['user_name'] ?? 'Admin Sistem';
@@ -48,21 +48,19 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         curl_setopt($ch_drive, CURLOPT_RETURNTRANSFER, true);
         curl_setopt($ch_drive, CURLOPT_FOLLOWLOCATION, true);
         curl_setopt($ch_drive, CURLOPT_HTTPHEADER, ['Content-Type: application/json']);
-        
-        // --- TAMBAHAN UNTUK MENGELAKKAN TIMEOUT 30 SAAT ---
-        curl_setopt($ch_drive, CURLOPT_TIMEOUT, 120); // Had masa dinaikkan kepada 120 saat (2 minit)
-        // ------------------------------------------------
+        curl_setopt($ch_drive, CURLOPT_TIMEOUT, 120); 
         
         $drive_response = trim(curl_exec($ch_drive));
         $http_code_drive = curl_getinfo($ch_drive, CURLINFO_HTTP_CODE);
+        curl_close($ch_drive);
         
         if ($http_code_drive == 200 && strpos($drive_response, 'ERROR') === false) {
             $drive_file_id = $drive_response;
         }
     }
 
-    // 4. Simpan ke Database Neon (PostgreSQL) termasuk kolum terima_daripada
-    $sql = "INSERT INTO minit_surat (no_rujukan, tarikh_terima, daripada, terima_daripada, perkara, kolej, target_role, status, drive_file_id, didaftarkan_oleh) 
+    // 4. Simpan ke Database Neon (PostgreSQL)
+    $sql = "INSERT INTO minit_surat (no_rujukan, tarikh_terima, daripada, terima_daripada, perkara, kolej, target_role, status, drive_file_id, didaftarkan_oleh)  
             VALUES (?, ?, ?, ?, ?, ?, ?, 'BARU', ?, ?) RETURNING id";
     $stmt = $pdo->prepare($sql);
     
@@ -70,7 +68,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         $no_rujukan, 
         $tarikh_terima, 
         $daripada, 
-        $terima_daripada, // Disimpan ke dalam pangkalan data
+        $terima_daripada, 
         $perkara, 
         $kolej, 
         $target_role, 
@@ -87,13 +85,13 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         $host = $_SERVER['HTTP_HOST'];
         
         $halaman_tujuan = ""; 
-        $role = strtolower(trim($target_role)); 
+        $role_lower = strtolower($target_role); 
         
-        if (strpos($role, 'tpp') !== false) {
+        if (strpos($role_lower, 'tpp') !== false) {
             $halaman_tujuan = "hometpp.php"; 
-        } elseif (strpos($role, 'tpa') !== false) {
+        } elseif (strpos($role_lower, 'tpa') !== false) {
             $halaman_tujuan = "hometpa.php"; 
-        } elseif (strpos($role, 'pengarah') !== false) {
+        } elseif (strpos($role_lower, 'pengarah') !== false) {
             $halaman_tujuan = "homedirector.php"; 
         }
 
@@ -131,6 +129,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($data));
         curl_setopt($ch, CURLOPT_HTTPHEADER, ['api-key: ' . $api_key, 'Content-Type: application/json']);
         curl_exec($ch);
+        curl_close($ch);
 
         echo "<script>alert('Surat telah didaftarkan dan e-mel berjaya dihantar!'); window.location='homeadmin.php';</script>";
     } else {
