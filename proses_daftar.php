@@ -1,6 +1,6 @@
 <?php
 ini_set('display_errors', 1);
-error_reporting(E_ALL & ~E_DEPRECATED); // Abaikan amaran deprecated untuk curl_close
+error_reporting(E_ALL & ~E_DEPRECATED); 
 session_start();
 include('db.php'); 
 
@@ -120,7 +120,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         curl_setopt($ch, CURLOPT_HTTPHEADER, ['api-key: ' . $api_key, 'Content-Type: application/json']);
         curl_exec($ch);
 
-        echo "<script>alert('Surat telah didaftarkan dan e-mel berjaya dihantar!'); window.location='homeadmin.php';</script>";
+        // Ditukar kepada login.php mengikut keperluan anda
+        echo "<script>alert('Surat telah didaftarkan dan e-mel berjaya dihantar!'); window.location='login.php';</script>";
     } else {
         $errorInfo = $stmt->errorInfo();
         echo "Ralat Database: " . $errorInfo[2];
