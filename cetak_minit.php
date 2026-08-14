@@ -44,8 +44,8 @@ $catatan = !empty($row['catatan']) ? nl2br(htmlspecialchars($row['catatan'])) : 
 $arahan = htmlspecialchars($row['arahan_pilihan'] ?? $row['arahan'] ?? 'TIADA ARAHAN');
 
 // Kolum Pegawai dan Salinan Kepada
-$pegawai = htmlspecialchars($row['pegawai'] ?? '-');
-$salinan_kepada = htmlspecialchars($row['salinan_kepada'] ?? '-'); 
+$pegawai = strtoupper(htmlspecialchars($row['pegawai'] ?? '-'));
+$salinan_kepada = strtoupper(htmlspecialchars($row['salinan_kepada'] ?? '-'));
 
 $tarikh_sah = !empty($row['tarikh_disahkan']) ? date('d/m/Y', strtotime($row['tarikh_disahkan'])) : date('d/m/Y');
 $signature_data = $row['tandatangan'] ?? ''; 
