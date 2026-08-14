@@ -97,6 +97,8 @@ $total_done = ($count_done) ? $count_done->fetch(PDO::FETCH_ASSOC)['total'] : 0;
         .wait { background: #fee2e2; color: #991b1b; }
         .selesai-badge { background: #e0e7ff; color: #4338ca; }
         
+        .row-done { background-color: #f0fdf4 !important; } /* Hijau lembut automatik jika dah maklum */
+
         .btn-view { display: inline-block; padding: 6px 12px; background: #e0e7ff; color: #4338ca; border-radius: 4px; text-decoration: none; font-size: 0.8rem; font-weight: 600; margin-bottom: 5px; }
         .btn-print { display: inline-block; padding: 6px 12px; background: #dcfce7; color: #166534; border-radius: 4px; text-decoration: none; font-size: 0.8rem; font-weight: 600; margin-bottom: 5px; }
         .btn-delete { display: inline-block; padding: 6px 12px; background: #fee2e2; color: #991b1b; border-radius: 4px; text-decoration: none; font-size: 0.8rem; font-weight: 600; }
@@ -133,20 +135,22 @@ $total_done = ($count_done) ? $count_done->fetch(PDO::FETCH_ASSOC)['total'] : 0;
                     <th>Daripada</th>
                     <th>Perkara</th>
                     <th>Status</th>
+                    <th>Maklum</th>
                     <th>Tindakan</th>
-                    <th>Maklum Kepada</th>
                 </tr>
             </thead>
             <tbody>
                 <?php
                 try {
-                    // Mengambil kolum 'perkara' dari pangkalan data
                     $sql = "SELECT id, no_rujukan, tarikh_terima, created_at, daripada, perkara, status, maklum_kepada FROM minit_surat ORDER BY id DESC";
                     $res = $pdo->query($sql);
                     $rows = $res->fetchAll(PDO::FETCH_ASSOC);
 
                     if ($rows && count($rows) > 0) {
                         foreach($rows as $row) {
+                            $is_done = !empty($row['maklum_kepada']);
+                            $row_class = $is_done ? 'row-done' : '';
+                            
                             $status = trim($row['status'] ?? 'Menunggu');
                             $badge = ($status == 'SELESAI TANDATANGAN' || $status == 'DIMAKLUM') ? 'selesai-badge' : 'wait';
                             
@@ -157,18 +161,20 @@ $total_done = ($count_done) ? $count_done->fetch(PDO::FETCH_ASSOC)['total'] : 0;
                             $daripada = htmlspecialchars($row['daripada'] ?? '-');
                             $perkara = htmlspecialchars($row['perkara'] ?? '-');
 
-                            echo "<tr>
+                            echo "<tr class='{$row_class}'>
                                 <td>{$tarikh}</td>
                                 <td>{$rujukan}</td>
                                 <td>{$daripada}</td>
                                 <td>{$perkara}</td>
                                 <td><span class='status-badge {$badge}'>{$status}</span></td>
+                                <td>" . ($is_done 
+                                    ? "<span style='color:#059669;'><i class='fa-solid fa-circle-check'></i> <b>Dah Maklum</b></span><br><small style='color:#64748b;'>".$row['maklum_kepada']."</small>" 
+                                    : "<a href='maklum.php?id={$row['id']}' style='color:#7c3aed; font-weight:bold; text-decoration:none;'><i class='fa-solid fa-paper-plane'></i> Belum</a>") . "</td>
                                 <td>
                                     <a href='view_surat.php?id={$row['id']}' class='btn-view'><i class='fa-solid fa-eye'></i> Lihat</a><br>
                                     <a href='cetak_minit.php?id={$row['id']}' target='_blank' class='btn-print'><i class='fa-solid fa-print'></i> Cetak</a><br>
                                     <a href='?delete_id={$row['id']}' class='btn-delete' onclick=\"return confirm('Adakah anda pasti mahu memadam rekod surat ini?');\"><i class='fa-solid fa-trash'></i> Padam</a>
                                 </td>
-                                <td>" . (!empty($row['maklum_kepada']) ? "<span style='color:#0369a1; font-weight:bold;'>".$row['maklum_kepada']."</span>" : "<a href='maklum.php?id={$row['id']}' style='color:#7c3aed; text-decoration:none;'><i class='fa-solid fa-paper-plane'></i> Maklum</a>") . "</td>
                             </tr>";
                         }
                     } else {
