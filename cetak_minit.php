@@ -7,7 +7,7 @@ if (!isset($_GET['id']) || empty($_GET['id'])) { die("ID Dokumen tidak sah."); }
 
 $id = intval($_GET['id']);
 
-// 1. Ambil maklumat minit surat termasuk medan terima_daripada
+// 1. Ambil maklumat minit surat secara lengkap
 $stmt = $pdo->prepare("SELECT m.*, u.role as user_role FROM minit_surat m LEFT JOIN users u ON m.target_role = u.role OR m.didaftarkan_oleh = u.email WHERE m.id = ?");
 $stmt->execute([$id]);
 $row = $stmt->fetch(PDO::FETCH_ASSOC);
@@ -21,24 +21,27 @@ $no_fail = htmlspecialchars($row['no_fail'] ?? '-');
 $tarikh_surat = !empty($row['tarikh_surat']) ? date('d/m/Y', strtotime($row['tarikh_surat'])) : '-';
 $tarikh_terima = !empty($row['tarikh_terima']) ? date('d/m/Y', strtotime($row['tarikh_terima'])) : '-';
 $daripada = htmlspecialchars($row['daripada'] ?? '-');
-$terima_daripada = htmlspecialchars($row['terima_daripada'] ?? '-'); // Membaca nilai dari DB
-$kepada= htmlspecialchars($row['target_role'] ?? '-');
-$perkara = htmlspecialchars($row['perkara'] ?? '-'); 
+$terima_daripada = htmlspecialchars($row['terima_daripada'] ?? '-'); 
+
+// Utamakan data 'pegawai' yang ditaip oleh Pengarah. Jika kosong, guna 'target_role' asal.
+$kepada = !empty($row['pegawai']) ? htmlspecialchars($row['pegawai']) : htmlspecialchars($row['target_role'] ?? '-');
+
+$perkara = htmlspecialchars($row['perkara'] ?? $row['perkara_surat'] ?? '-'); 
 $didaftarkan_oleh = htmlspecialchars($row['didaftarkan_oleh'] ?? 'Admin');
 $catatan = !empty($row['catatan']) ? nl2br(htmlspecialchars($row['catatan'])) : '<em>Tiada catatan diberikan.</em>';
-$arahan = htmlspecialchars($row['arahan_pilihan'] ?? 'TIADA ARAHAN');
+$arahan = htmlspecialchars($row['arahan_pilihan'] ?? $row['arahan'] ?? 'TIADA ARAHAN');
 
 // Kolum Pegawai dan Salinan Kepada
 $pegawai = htmlspecialchars($row['pegawai'] ?? '-');
 $salinan_kepada = htmlspecialchars($row['salinan_kepada'] ?? '-'); 
 
-$tarikh_sah = !empty($row['tarikh_disahkan']) ? date('d/m/Y', strtotime($row['tarikh_disahkan'])) : (!empty($row['tarikh_sah']) ? date('d/m/Y', strtotime($row['tarikh_sah'])) : date('d/m/Y'));
+$tarikh_sah = !empty($row['tarikh_disahkan']) ? date('d/m/Y', strtotime($row['tarikh_disahkan'])) : date('d/m/Y');
 $signature_data = $row['tandatangan'] ?? ''; 
 
 // 2. Membaca nilai role dari pangkalan data
 $role = strtolower(trim($row['user_role'] ?? $row['target_role'] ?? ''));
 
-// Tetapan default (jika tiada padanan)
+// Tetapan default pejabat
 $nama_pejabat = "PEJABAT PENGARAH<br>KOLEJ KOMUNITI KEPALA BATAS";
 $gelaran_tandatangan = "PENGARAH";
 
@@ -53,7 +56,7 @@ if ($role === 'tpp') {
     $gelaran_tandatangan = "PENGARAH";
 }
 
-// 3. Logik apabila butang 'Save to Spreadsheet' ditekan
+// 3. Logik butang 'Save to Spreadsheet'
 if (isset($_POST['save_spreadsheet'])) {
     $url_google_script = "https://script.google.com/macros/s/AKfycbyUSuLepkLP87f0Lnl5IgBmKunk3oHjrrF5iiNnS5ALDbIcFc_TWiERTj5uqIVlXU7x/exec"; 
 
@@ -73,6 +76,7 @@ if (isset($_POST['save_spreadsheet'])) {
     curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($data_to_send));
     curl_setopt($ch, CURLOPT_HTTPHEADER, ['Content-Type: application/json']);
     $response = curl_exec($ch);
+    curl_close($ch);
 
     $current_page = basename($_SERVER['PHP_SELF']);
     echo "<script>alert('Maklumat berjaya disimpan ke Google Spreadsheet!'); window.location.href='" . $current_page . "?id=" . $id . "';</script>";
@@ -195,7 +199,7 @@ if (isset($_POST['save_spreadsheet'])) {
 </div>
 
 <div class="btn-container no-print">
-    <a href="homeadmin.php" class="btn-action btn-back">
+    <a href="homedirector.php" class="btn-action btn-back">
         <i class="fa-solid fa-arrow-left"></i> KEMBALI
     </a>
     
