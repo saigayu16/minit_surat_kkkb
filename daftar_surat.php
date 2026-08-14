@@ -379,7 +379,7 @@ $admin_name = $_SESSION['user_name'] ?? 'Admin Sistem';
             </div>
 
             <div class="form-group">
-                <label>Perkara Surat (Detail):</label>
+                <label>Maklumat Lanjut(Optional):</label>
                 <div class="input-wrapper textarea-wrapper">
                     <i class="fa-solid fa-align-left"></i>
                     <textarea name="perkara_surat" rows="3" placeholder="Butiran lanjut kandungan surat" required></textarea>
