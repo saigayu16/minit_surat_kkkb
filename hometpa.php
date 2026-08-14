@@ -7,35 +7,35 @@ error_reporting(E_ALL);
 // Panggil fail sambungan DB (Neon PostgreSQL menggunakan PDO)
 include('db.php'); 
 
-// 1. SEMAK SESI & ROLE PENGARAH
-// Pastikan hanya user dengan role 'pengarah' sahaja boleh akses halaman ini
-if (!isset($_SESSION['user_role']) || $_SESSION['user_role'] !== 'pengarah') {
+// 1. SEMAK SESI & ROLE TPA
+// Pastikan hanya user dengan role 'tpa' sahaja boleh akses halaman ini
+if (!isset($_SESSION['user_role']) || $_SESSION['user_role'] !== 'tpa') {
     header("Location: login.php");
     exit;
 }
 
-$user_name = $_SESSION['user_name'] ?? 'Pengarah';
-$user_role = "Pengarah";
+$user_name = $_SESSION['user_name'] ?? 'TPA';
+$user_role = "Timbalan Pengarah Akademik";
 
-// 2. KIRA STATISTIK KHAS PENGARAH (Menggunakan PDO)
+// 2. KIRA STATISTIK KHAS TPA (Menggunakan PDO)
 $total_perlu_sahkan = 0;
 $total_selesai = 0;
 $total_kkkb = 0;
 
-// Kira Dokumen Menunggu Pengesahan (Status BUKAN 'SELESAI TANDATANGAN' dan BUKAN 'DIMAKLUM')
-$count_wait = $pdo->query("SELECT COUNT(*) as total FROM minit_surat WHERE status != 'SELESAI TANDATANGAN' AND status != 'DIMAKLUM'");
+// Kira Dokumen Menunggu Pengesahan TPA
+$count_wait = $pdo->query("SELECT COUNT(*) as total FROM minit_surat WHERE target_role = 'tpa' AND status != 'SELESAI TANDATANGAN' AND status != 'DIMAKLUM'");
 if($count_wait) {
     $total_perlu_sahkan = $count_wait->fetch(PDO::FETCH_ASSOC)['total'];
 }
 
-// Kira Dokumen Selesai (Status 'SELESAI TANDATANGAN' ATAU 'DIMAKLUM')
-$count_done = $pdo->query("SELECT COUNT(*) as total FROM minit_surat WHERE status = 'SELESAI TANDATANGAN' OR status = 'DIMAKLUM'");
+// Kira Dokumen Selesai TPA
+$count_done = $pdo->query("SELECT COUNT(*) as total FROM minit_surat WHERE target_role = 'tpa' AND (status = 'SELESAI TANDATANGAN' OR status = 'DIMAKLUM')");
 if($count_done) {
     $total_selesai = $count_done->fetch(PDO::FETCH_ASSOC)['total'];
 }
 
-// Kira Jumlah Surat Kolej Komuniti Kepala Batas
-$count_kkkb = $pdo->query("SELECT COUNT(*) as total FROM minit_surat WHERE kolej = 'Kolej Komuniti Kepala Batas'");
+// Kira Jumlah Surat Kolej Komuniti Kepala Batas berkaitan TPA
+$count_kkkb = $pdo->query("SELECT COUNT(*) as total FROM minit_surat WHERE target_role = 'tpa' AND kolej = 'Kolej Komuniti Kepala Batas'");
 if($count_kkkb) {
     $total_kkkb = $count_kkkb->fetch(PDO::FETCH_ASSOC)['total'];
 }
@@ -46,7 +46,7 @@ if($count_kkkb) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard Pengarah - Sistem Minit Digital</title>
+    <title>Dashboard TPA - Sistem Minit Digital</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     
@@ -72,7 +72,6 @@ if($count_kkkb) {
             min-height: 100vh;
         }
 
-        /* Lapisan khas untuk imej latar belakang dengan kesan blur */
         body::before {
             content: '';
             position: fixed;
@@ -108,10 +107,10 @@ if($count_kkkb) {
             gap: 10px; 
             color: #ffffff;
         }
-        .navbar h2 i { color: #fbbf24; }
+        .navbar h2 i { color: #38bdf8; }
 
         .user-info { display: flex; align-items: center; gap: 15px; font-size: 0.95rem; color: #ffffff; }
-        .role-badge { background: #3b82f6; color: white; padding: 4px 10px; border-radius: 4px; font-size: 0.8rem; font-weight: 600; }
+        .role-badge { background: #0284c7; color: white; padding: 4px 10px; border-radius: 4px; font-size: 0.8rem; font-weight: 600; }
         .btn-logout { color: #f87171; text-decoration: none; font-weight: 600; transition: color 0.2s; }
         .btn-logout:hover { color: #ef4444; }
 
@@ -159,10 +158,10 @@ if($count_kkkb) {
 <body>
 
 <nav class="navbar">
-    <h2><i class="fa-solid fa-signature"></i> Sistem Minit Digital</h2>
+    <h2><i class="fa-solid fa-graduation-cap"></i> Sistem Minit Digital - TPA</h2>
     <div class="user-info">
-        <span><i class="fa-solid fa-user-tie"></i> Tuan. <strong><?= htmlspecialchars($user_name) ?></strong></span>
-        <span class="role-badge"><?= $user_role ?></span>
+        <span><i class="fa-solid fa-user-tie"></i> <strong><?= htmlspecialchars($user_name) ?></strong></span>
+        <span class="role-badge">TPA</span>
         | <a href="logout.php" class="btn-logout"><i class="fa-solid fa-right-from-bracket"></i> Log Keluar</a>
     </div>
 </nav>
@@ -170,7 +169,7 @@ if($count_kkkb) {
 <div class="container">
     <div class="stats-grid">
         <div class="stat-card">
-            <div class="stat-info"><h4>Perlu Kelulusan</h4><p><?= $total_perlu_sahkan ?></p></div>
+            <div class="stat-info"><h4>Perlu Tindakan TPA</h4><p><?= $total_perlu_sahkan ?></p></div>
             <div class="stat-icon icon-sign"><i class="fa-solid fa-file-signature"></i></div>
         </div>
         <div class="stat-card">
@@ -184,8 +183,8 @@ if($count_kkkb) {
     </div>
 
     <div class="table-title">
-        <i class="fa-solid fa-folder-tree" style="color: #38bdf8;"></i>
-        Senarai Dokumen Minit Pengarah
+        <i class="fa-solid fa-folder-open" style="color: #38bdf8;"></i>
+        Senarai Dokumen Minit Timbalan Pengarah Akademik
     </div>
 
     <div class="table-container">
@@ -202,44 +201,38 @@ if($count_kkkb) {
             </thead>
             <tbody>
                 <?php
-                // Menggunakan senarai kolum eksplisit untuk mengelakkan ralat cached plan PostgreSQL
-                $res = $pdo->query("SELECT id, no_rujukan, tarikh_terima, daripada, kepada, perkara, perkara_surat, kolej, didaftarkan_oleh, status, fail_surat, tempoh_tindakan, tandatangan_fail, tarikh_disahkan, target_role, catatan, tandatangan, arahan_pilihan, maklum_kepada, tandatangan_data, drive_file_id, arahan, created_at, staf_dimaklumkan FROM minit_surat ORDER BY id DESC");
-                if ($res) {
-                    $rows = $res->fetchAll(PDO::FETCH_ASSOC);
-                    if (count($rows) > 0) {
-                        foreach($rows as $row) {
-                            $status = trim($row['status'] ?? 'BARU');
-                            
-                            // LOGIK: Selesai jika status tandatangan atau dimaklum
-                            $is_done = (strcasecmp($status, 'SELESAI TANDATANGAN') == 0 || strcasecmp($status, 'DIMAKLUM') == 0);
-                            $badge = $is_done ? 'done' : 'wait';
-                            
-                            $rujukan = htmlspecialchars($row['no_rujukan'] ?? '-');
-                            $pengirim = htmlspecialchars($row['didaftarkan_oleh'] ?? 'Admin');
-                            $kolej = htmlspecialchars($row['kolej'] ?? '-');
-                            $perkara = htmlspecialchars($row['perkara'] ?? '-');
-                            
-                            echo "<tr>
-                                <td style='font-weight:600; font-family:monospace; font-size:0.9rem;'>$rujukan</td>
-                                <td style='font-size:0.88rem;'><i class='fa-solid fa-user-gear'></i> $pengirim</td>
-                                <td><span style='font-weight:500; color:#475569;'>$kolej</span></td>
-                                <td style='max-width: 300px; line-height: 1.4;'>$perkara</td>
-                                <td><span class='status-badge $badge'>$status</span></td>
-                                <td>";
-                            
-                            // Paparkan "Lihat" jika sudah selesai, jika tidak paparkan "Sahkan"
-                            if ($is_done) {
-                                echo '<a href="view_surat.php?id='.$row['id'].'" class="btn-action btn-view"><i class="fa-solid fa-eye"></i> Lihat</a>';
-                            } else {
-                                echo '<a href="tandatangan.php?id='.$row['id'].'" class="btn-action btn-sign"><i class="fa-solid fa-pen-nib"></i> Sahkan</a>';
-                            }
-                            echo "</td></tr>";
+                $stmt = $pdo->prepare("SELECT id, no_rujukan, tarikh_terima, daripada, kepada, perkara, kolej, didaftarkan_oleh, status FROM minit_surat WHERE target_role = 'tpa' ORDER BY id DESC");
+                $stmt->execute();
+                $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+                if (count($rows) > 0) {
+                    foreach($rows as $row) {
+                        $status = trim($row['status'] ?? 'BARU');
+                        $is_done = (strcasecmp($status, 'SELESAI TANDATANGAN') == 0 || strcasecmp($status, 'DIMAKLUM') == 0);
+                        $badge = $is_done ? 'done' : 'wait';
+                        
+                        $rujukan = htmlspecialchars($row['no_rujukan'] ?? '-');
+                        $pengirim = htmlspecialchars($row['didaftarkan_oleh'] ?? 'Admin');
+                        $kolej = htmlspecialchars($row['kolej'] ?? '-');
+                        $perkara = htmlspecialchars($row['perkara'] ?? '-');
+                        
+                        echo "<tr>
+                            <td style='font-weight:600; font-family:monospace; font-size:0.9rem;'>$rujukan</td>
+                            <td style='font-size:0.88rem;'><i class='fa-solid fa-user-gear'></i> $pengirim</td>
+                            <td><span style='font-weight:500; color:#475569;'>$kolej</span></td>
+                            <td style='max-width: 300px; line-height: 1.4;'>$perkara</td>
+                            <td><span class='status-badge $badge'>$status</span></td>
+                            <td>";
+                        
+                        if ($is_done) {
+                            echo '<a href="view_surat.php?id='.$row['id'].'" class="btn-action btn-view"><i class="fa-solid fa-eye"></i> Lihat</a>';
+                        } else {
+                            echo '<a href="tandatangan.php?id='.$row['id'].'" class="btn-action btn-sign"><i class="fa-solid fa-pen-nib"></i> Sahkan</a>';
                         }
-                    } else {
-                        echo "<tr><td colspan='6' style='text-align:center; padding: 30px; color: var(--text-muted);'>📂 Tiada dokumen ditemui.</td></tr>";
+                        echo "</td></tr>";
                     }
                 } else {
-                    echo "<tr><td colspan='6' style='text-align:center; padding: 30px; color: var(--text-muted);'>📂 Tiada dokumen ditemui.</td></tr>";
+                    echo "<tr><td colspan='6' style='text-align:center; padding: 30px; color: var(--text-muted);'>📂 Tiada dokumen ditemui untuk TPA.</td></tr>";
                 }
                 ?>
             </tbody>
