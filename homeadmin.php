@@ -140,8 +140,8 @@ $total_done = ($count_done) ? $count_done->fetch(PDO::FETCH_ASSOC)['total'] : 0;
             <tbody>
                 <?php
                 try {
-                    // Mengambil kolum 'status_makluman' bersama kolum lain dari pangkalan data
-                    $sql = "SELECT id, no_rujukan, tarikh_terima, created_at, daripada, perkara, status, maklum_kepada, status_makluman FROM minit_surat ORDER BY id DESC";
+                    // Mengambil kolum 'perkara' dari pangkalan data
+                    $sql = "SELECT id, no_rujukan, tarikh_terima, created_at, daripada, perkara, status, maklum_kepada FROM minit_surat ORDER BY id DESC";
                     $res = $pdo->query($sql);
                     $rows = $res->fetchAll(PDO::FETCH_ASSOC);
 
@@ -157,19 +157,6 @@ $total_done = ($count_done) ? $count_done->fetch(PDO::FETCH_ASSOC)['total'] : 0;
                             $daripada = htmlspecialchars($row['daripada'] ?? '-');
                             $perkara = htmlspecialchars($row['perkara'] ?? '-');
 
-                            // Semak status makluman (jika sudah dimaklumkan, tukar warna label/pautan kepada hijau)
-                            $status_makluman = $row['status_makluman'] ?? 'Belum Dimaklumkan';
-                            if ($status_makluman === 'Telah Dimaklumkan') {
-                                $maklum_display = "<span style='background-color: #e8f5e9; color: #2e7d32; padding: 5px 10px; border-radius: 4px; font-weight: bold; font-size: 0.85rem;'><i class='fa-solid fa-circle-check'></i> Telah Dimaklumkan</span>";
-                            } else {
-                                // Jika ada teks pada maklum_kepada lama, atau paparkan butang Maklum asal
-                                if (!empty($row['maklum_kepada'])) {
-                                    $maklum_display = "<span style='color:#0369a1; font-weight:bold;'>".$row['maklum_kepada']."</span>";
-                                } else {
-                                    $maklum_display = "<a href='maklum.php?id={$row['id']}' style='color:#7c3aed; text-decoration:none;'><i class='fa-solid fa-paper-plane'></i> Maklum</a>";
-                                }
-                            }
-
                             echo "<tr>
                                 <td>{$tarikh}</td>
                                 <td>{$rujukan}</td>
@@ -181,7 +168,7 @@ $total_done = ($count_done) ? $count_done->fetch(PDO::FETCH_ASSOC)['total'] : 0;
                                     <a href='cetak_minit.php?id={$row['id']}' target='_blank' class='btn-print'><i class='fa-solid fa-print'></i> Cetak</a><br>
                                     <a href='?delete_id={$row['id']}' class='btn-delete' onclick=\"return confirm('Adakah anda pasti mahu memadam rekod surat ini?');\"><i class='fa-solid fa-trash'></i> Padam</a>
                                 </td>
-                                <td>{$maklum_display}</td>
+                                <td>" . (!empty($row['maklum_kepada']) ? "<span style='color:#0369a1; font-weight:bold;'>".$row['maklum_kepada']."</span>" : "<a href='maklum.php?id={$row['id']}' style='color:#7c3aed; text-decoration:none;'><i class='fa-solid fa-paper-plane'></i> Maklum</a>") . "</td>
                             </tr>";
                         }
                     } else {
