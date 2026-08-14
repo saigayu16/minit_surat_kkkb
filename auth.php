@@ -20,10 +20,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     if ($user && $password === $user['password']) {
         session_regenerate_id(true);
 
-        // Set session variables
+        // Set session variables (SERAGAMKAN DENGAN DASHBOARD)
         $_SESSION['user_logged_in'] = true;
         $_SESSION['user_name']      = $user['username'];
-        $_SESSION['user_role']      = $user['role'];
+        $_SESSION['user_role']      = $user['role']; // INI KUNCI UTAMA YANG DISERAGAMKAN
         $_SESSION['user_email']     = $user['email'] ?? '';
 
         // Redirect based on role
@@ -58,4 +58,3 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 // End output buffering
 ob_end_flush(); 
 ?>
-
