@@ -174,7 +174,7 @@ if (isset($_POST['save_spreadsheet'])) {
             <td style="border: 1px solid #cbd5e1;"><strong>Kepada:</strong><br><?= strtoupper($kepada) ?></td>
         </tr>
         <tr>
-            <td style="border: 1px solid #cbd5e1;"><strong>Terima Daripada:</strong><br><?= $terima_daripada ?></td>
+            <td style="border: 1px solid #cbd5e1;"><strong>Sumber/Platform:</strong><br><?= $terima_daripada ?></td>
             <td style="border: 1px solid #cbd5e1;"><strong>Salinan Kepada:</strong><br><?= $salinan_kepada ?></td>
         </tr>
     </table>
