@@ -54,12 +54,10 @@ if($count_all) {
     
     <style>
         :root {
-            --primary-color: #0f172a; /* Gelap Eksekutif */
-            --accent-sign: #2563eb; /* Biru Tandatangan */
-            --accent-view: #ea580c; /* Oren Lihat */
-            --bg-color: #f8fafc;
+            --primary-color: #0f172a; 
+            --accent-sign: #2563eb; 
+            --accent-view: #ea580c; 
             --card-bg: #ffffff;
-            --text-main: #ffffff;
             --text-muted: #64748b;
             --border-color: #e2e8f0;
         }
@@ -68,13 +66,13 @@ if($count_all) {
             font-family: 'Inter', sans-serif; 
             margin: 0; 
             padding: 0;
-            color: var(--text-main);
+            color: #0f172a;
             position: relative;
             overflow-x: hidden;
             min-height: 100vh;
         }
 
-        /* Lapisan khas untuk imej latar belakang dengan kesan blur */
+        /* Latar belakang dengan kesan blur */
         body::before {
             content: '';
             position: fixed;
@@ -87,9 +85,9 @@ if($count_all) {
             background-size: cover;
             background-attachment: fixed;
             background-position: center center;
-            filter: blur(8px); /* Ubah nilai 8px ini jika mahu lebih atau kurang kabur */
-            transform: scale(1.1); /* Mengelakkan kesan putih di tepi akibat blur */
-            z-index: -1; /* Memastikan latar belakang berada di lapisan paling bawah */
+            filter: blur(8px);
+            transform: scale(1.1);
+            z-index: -1;
         }
 
         /* Navbar Gaya Eksekutif */
@@ -110,10 +108,11 @@ if($count_all) {
             display: flex;
             align-items: center;
             gap: 10px;
+            color: #ffffff;
         }
 
         .navbar h2 i {
-            color: #fbbf24; /* Ikon Merit Emas */
+            color: #fbbf24; 
         }
 
         .user-info {
@@ -121,6 +120,7 @@ if($count_all) {
             align-items: center;
             gap: 15px;
             font-size: 0.95rem;
+            color: #ffffff;
         }
 
         .role-badge {
@@ -161,7 +161,7 @@ if($count_all) {
             background: var(--card-bg);
             padding: 24px;
             border-radius: 12px;
-            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.02), 0 2px 4px -1px rgba(0,0,0,0.02);
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.02);
             border: 1px solid var(--border-color);
             display: flex;
             justify-content: space-between;
@@ -201,14 +201,15 @@ if($count_all) {
             display: flex;
             align-items: center;
             gap: 10px;
-            color: var(--text-main);
+            color: #ffffff;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
         }
 
         /* Jadual Dokumen */
         .table-container {
             background: var(--card-bg);
             border-radius: 12px;
-            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.02), 0 2px 4px -1px rgba(0,0,0,0.02);
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.02);
             border: 1px solid var(--border-color);
             overflow: hidden;
         }
@@ -384,7 +385,7 @@ if($count_all) {
                                 <td><span class='status-badge $badge'>$status</span></td>
                                 <td>";
                             
-                            // Pertukaran paparan butang mengikut status
+                            // Pertukaran paparan butang mengikut status (redirect ke view_surat.php jika sudah disahkan)
                             if ($is_done) {
                                 echo '<a href="view_surat.php?id='.$row['id'].'" class="btn-action btn-view"><i class="fa-solid fa-eye"></i> Lihat</a>';
                             } else {
