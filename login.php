@@ -1,28 +1,23 @@
 <?php
 session_start();
 
-// 1. SEMAK SESI LOG MASUK YANG SERAGAM
-// Jika pengguna sudah mempunyai peranan (role) yang sah, alihkan terus ke dashboard masing-masing
-if (isset($_SESSION['user_role'])) {
-    $role = $_SESSION['user_role'];
+// 1. If already logged in, redirect
+if (isset($_SESSION['user_logged_in']) && $_SESSION['user_logged_in'] === true) {
+    $role = $_SESSION['user_role'] ?? '';
     
     switch ($role) {
-        case 'admin':    $target = 'homeadmin.php'; break;
+        case 'admin': $target = 'homeadmin.php'; break;
         case 'pengarah': $target = 'homedirector.php'; break;
-        case 'tpa':      $target = 'hometpa.php'; break;
-        case 'tpp':      $target = 'hometpp.php'; break;
-        default:         $target = ''; break;
+        case 'tpp': $target = 'hometpp.php'; break;
+        case 'tpa': $target = 'hometpa.php'; break;
+        default: $target = 'login.php'; break;
     }
-    
-    // Jika target sah dan fail bukan login.php, baru redirect untuk elak gelung sendiri
-    if (!empty($target)) {
-        header("Location: $target");
-        exit;
-    }
+    header("Location: $target");
+    exit;
 }
 ?>
 
-<!-- 2. Snippet ralat -->
+<!-- 2. Error handling snippet -->
 <?php if(isset($_GET['error'])): ?>
     <script>alert('Nama pengguna, kata laluan, atau peranan salah!');</script>
 <?php endif; ?>
@@ -126,6 +121,7 @@ if (isset($_SESSION['user_role'])) {
             text-align: left; 
         }
 
+        /* Ikon kiri di dalam input */
         .input-group > i:not(.toggle-password) { 
             position: absolute; 
             left: 14px; 
@@ -137,6 +133,7 @@ if (isset($_SESSION['user_role'])) {
             transition: color 0.3s;
         }
 
+        /* Ikon mata untuk togol kata laluan di sebelah kanan */
         .toggle-password {
             position: absolute;
             right: 14px;
@@ -169,6 +166,7 @@ if (isset($_SESSION['user_role'])) {
             -moz-appearance: none;
         }
 
+        /* Input biasa tanpa ikon kanan (seperti nama pengguna) saiz padding kanan berbeza */
         input[name="username"] {
             padding-right: 12px;
         }
@@ -280,14 +278,17 @@ if (isset($_SESSION['user_role'])) {
         </form>
     </div>
 
+    <!-- Skrip JavaScript untuk Kawal Eye On/Off -->
     <script>
         const togglePassword = document.querySelector('#toggleLoginPassword');
         const password = document.querySelector('#login-password');
 
         togglePassword.addEventListener('click', function () {
+            // Tukar jenis input daripada password kepada text
             const type = password.getAttribute('type') === 'password' ? 'text' : 'password';
             password.setAttribute('type', type);
             
+            // Tukar ikon mata (fa-eye <-> fa-eye-slash)
             this.classList.toggle('fa-eye');
             this.classList.toggle('fa-eye-slash');
         });
