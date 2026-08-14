@@ -332,11 +332,11 @@ $admin_name = $_SESSION['user_name'] ?? 'Admin Sistem';
                     <i class="fa-solid fa-paper-plane"></i>
                     <select name="terima_daripada" required>
                         <option value="" disabled selected>-- Sila Pilih Kaedah Penerimaan --</option>
-                        <option value="email">Email Rasmi</option>
-                        <option value="email pengarah">Email Pengarah</option>
-                        <option value="email pegawai">Email Pegawai</option>
-                        <option value="melalui pos">Melalui Pos</option>
-                        <option value="serahan tangan">Serahan Tangan</option>
+                        <option value="EMAIL RASMI">Email Rasmi</option>
+                        <option value="EMAIL PENGARAH">Email Pengarah</option>
+                        <option value="EMAIL PEGAWAI">Email Pegawai</option>
+                        <option value="MELALUI POS">Melalui Pos</option>
+                        <option value="SERAHAN TANGAN">Serahan Tangan</option>
                     </select>
                 </div>
             </div>
