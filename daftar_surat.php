@@ -52,9 +52,9 @@ $admin_name = $_SESSION['user_name'] ?? 'Admin Sistem';
             background-position: center;
             background-attachment: fixed;
             background-repeat: no-repeat;
-            filter: blur(8px); /* Ubah nilai 8px ini jika mahu lebih atau kurang kabur */
-            transform: scale(1.1); /* Mengelakkan kesan putih di tepi akibat blur */
-            z-index: -1; /* Memastikan latar belakang berada di lapisan paling bawah */
+            filter: blur(8px);
+            transform: scale(1.1);
+            z-index: -1;
         }
 
         .form-container { 
@@ -98,7 +98,6 @@ $admin_name = $_SESSION['user_name'] ?? 'Admin Sistem';
             color: #ca8a04;
         }
 
-        /* 🛠️ Gaya Kotak Tindakan Pantas (Google Docs Button) */
         .action-box {
             background: rgba(255, 255, 255, 0.1);
             backdrop-filter: blur(5px);
@@ -279,7 +278,7 @@ $admin_name = $_SESSION['user_name'] ?? 'Admin Sistem';
             </div>
         </div>
 
-        <!-- 🛠️ Butang Tindakan Pantas Ke Google Docs -->
+        <!-- Butang Tindakan Pantas Ke Google Docs -->
         <div class="action-box">
             <div class="action-text">
                 <strong>Belum ada fail surat fizikal?</strong>
@@ -326,6 +325,21 @@ $admin_name = $_SESSION['user_name'] ?? 'Admin Sistem';
                     <input type="text" name="daripada" placeholder="Nama agensi, syarikat atau individu" required>
                 </div>
             </div>
+
+            <!-- Kolum Baharu: Sumber / Platform -->
+            <div class="form-group">
+                <label>Sumber / Platform:</label>
+                <div class="input-wrapper">
+                    <i class="fa-solid fa-network-wired"></i>
+                    <select name="terima_daripada" required>
+                        <option value="" disabled selected>Pilih sumber / platform penerimaan</option>
+                        <option value="EMAIL RASMI">Email Rasmi</option>
+                        <option value="EMAIL PENGARAH">Email Pengarah</option>
+                        <option value="MELALUI POS">Melalui Pos</option>
+                        <option value="SERAHAN TANGAN">Serahan Tangan</option>
+                    </select>
+                </div>
+            </div>
             
             <div class="form-group">
                 <label>Hantar Kepada:</label>
@@ -339,8 +353,17 @@ $admin_name = $_SESSION['user_name'] ?? 'Admin Sistem';
                 </div>
             </div>
 
+            <!-- Kolum Baharu: Tarikh Surat -->
             <div class="form-group">
-                <label>Tarikh Terima:</label>
+                <label>Tarikh Surat:</label>
+                <div class="input-wrapper">
+                    <i class="fa-solid fa-calendar-alt"></i>
+                    <input type="date" name="tarikh_surat" required>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>Tarikh Terima Surat:</label>
                 <div class="input-wrapper">
                     <i class="fa-solid fa-calendar-days"></i>
                     <input type="date" name="tarikh_terima" required>
@@ -376,4 +399,3 @@ $admin_name = $_SESSION['user_name'] ?? 'Admin Sistem';
 
 </body>
 </html>
-
