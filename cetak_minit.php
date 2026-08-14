@@ -7,12 +7,24 @@ if (!isset($_GET['id']) || empty($_GET['id'])) { die("ID Dokumen tidak sah."); }
 
 $id = intval($_GET['id']);
 
-// 1. Ambil maklumat minit surat secara lengkap
-$stmt = $pdo->prepare("SELECT m.*, u.role as user_role FROM minit_surat m LEFT JOIN users u ON m.target_role = u.role OR m.didaftarkan_oleh = u.email WHERE m.id = ?");
+// 1. Ambil maklumat minit surat secara langsung tanpa JOIN yang kompleks
+$stmt = $pdo->prepare("SELECT * FROM minit_surat WHERE id = ?");
 $stmt->execute([$id]);
 $row = $stmt->fetch(PDO::FETCH_ASSOC);
 
 if (!$row) { die("Rekod tidak ditemui."); }
+
+// Ambil maklumat role pengguna secara berasingan untuk elakkan konflik cache plan PostgreSQL
+$user_role = '';
+$lookup_key = $row['target_role'] ?? ($row['didaftarkan_oleh'] ?? '');
+if (!empty($lookup_key)) {
+    $stmt_user = $pdo->prepare("SELECT role FROM users WHERE role = ? OR email = ? LIMIT 1");
+    $stmt_user->execute([$lookup_key, $lookup_key]);
+    $user_row = $stmt_user->fetch(PDO::FETCH_ASSOC);
+    if ($user_row) {
+        $user_role = $user_row['role'];
+    }
+}
 
 // Data Formatting
 $status = strtoupper(trim($row['status'] ?? 'TIADA STATUS'));
@@ -39,7 +51,7 @@ $tarikh_sah = !empty($row['tarikh_disahkan']) ? date('d/m/Y', strtotime($row['ta
 $signature_data = $row['tandatangan'] ?? ''; 
 
 // 2. Membaca nilai role dari pangkalan data
-$role = strtolower(trim($row['user_role'] ?? $row['target_role'] ?? ''));
+$role = strtolower(trim($user_role !== '' ? $user_role : ($row['target_role'] ?? '')));
 
 // Tetapan default pejabat
 $nama_pejabat = "PEJABAT PENGARAH<br>KOLEJ KOMUNITI KEPALA BATAS";
