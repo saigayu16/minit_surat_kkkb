@@ -127,7 +127,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 $data["attachment"] = $attachments;
             }
 
-            // 4. Hantar e-mel menggunakan cURL ke Brevo API
+            // 4. Hantar e-mel menggunakan cURL ke Brevo API (Tanpa curl_close untuk PHP 8.0+)
             $ch = curl_init('https://api.brevo.com/v3/smtp/email');
             curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
             curl_setopt($ch, CURLOPT_POST, true);
@@ -147,17 +147,11 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                     // A. Simpan rekod ke dalam database (jadual makluman_log)
                     $stmt_log = $pdo->prepare("INSERT INTO makluman_log (surat_id, nama_staf, keterangan) VALUES (?, ?, ?)");
                     $stmt_log->execute([$surat_id_val, $senarai_staf_string, 'Berjaya Dimaklumkan']);
-                    
-                    // B. Kemas kini status surat kepada "Telah Dimaklumkan" dalam jadual minit_surat
-                    if ($surat_id_val > 0) {
-                        $stmt_update_status = $pdo->prepare("UPDATE minit_surat SET status_makluman = 'Telah Dimaklumkan' WHERE id = ?");
-                        $stmt_update_status->execute([$surat_id_val]);
-                    }
                 } catch (PDOException $e) {
-                    // Abaikan jika ralat log/update
+                    // Abaikan jika ralat log
                 }
 
-                // C. Hantar data secara auto ke Google Sheets
+                // B. Hantar data secara auto ke Google Sheets
                 $url_google_script = "https://script.google.com/macros/s/AKfycbzcrzX07aLWHi2krdCqIGTvDSFAaFmp5YjRSdUDDsfAFIrHjV1rywUCHyDmnDDcxVGy2w/exec"; 
                 if (!empty($url_google_script)) {
                     $data_to_sheets = [
@@ -175,7 +169,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                     $response_gs = curl_exec($ch_gs);
                 }
 
-                // D. Hantar fail ke Google Apps Script untuk simpan ke Google Drive
+                // C. Hantar fail ke Google Apps Script untuk simpan ke Google Drive
                 if (!empty($url_google_script) && !empty($files_to_drive)) {
                     $data_drive = [
                         "action" => "mergeAndUpload",
@@ -194,7 +188,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
                 // Redirect semula ke muka surat maklum dengan membawa ID surat asal
                 $redirect_id = !empty($surat_id) ? $surat_id : '';
-                echo "<script>alert('E-mel, log database, status surat, Google Sheets, dan simpan ke Google Drive berjaya dijalankan!'); window.location='maklum.php?id=" . $redirect_id . "';</script>";
+                echo "<script>alert('E-mel, log database, Google Sheets, dan simpan ke Google Drive berjaya dijalankan!'); window.location='maklum.php?id=" . $redirect_id . "';</script>";
                 exit;
 
             } else {
