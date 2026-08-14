@@ -6,7 +6,6 @@ include('db.php'); // Menjangkakan sambungan menggunakan $pdo
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $surat_id = $_POST['surat_id'] ?? ''; // Ambil ID surat dari form
-    $email_staf_input = $_POST['email'] ?? ''; 
     $nama_staf_array  = $_POST['nama_staf'] ?? []; // Array nama staf yang dipilih
   
     // Auto-baca teks 'perkara' daripada surat yang PALING TERKINI atau mengikut ID surat
@@ -100,8 +99,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         }
 
         if (!empty($to_recipients)) {
-            // 3. Sediakan struktur data untuk API Brevo (Menggunakan Environment Variable untuk keselamatan)
-            $api_key = getenv('BREVO_API_KEY');
+            // 3. Sediakan struktur data untuk API Brevo
+            // Gantikan terus kunci API anda di sini jika tidak menggunakan getenv()
+            $api_key = getenv('BREVO_API_KEY'); 
             
             if (empty($api_key)) {
                 echo "<script>alert('Ralat: BREVO_API_KEY tidak dijumpai pada environment pelayan.'); window.history.back();</script>";
@@ -127,7 +127,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 $data["attachment"] = $attachments;
             }
 
-            // 4. Hantar e-mel menggunakan cURL ke Brevo API (Tanpa curl_close untuk PHP 8.0+)
+            // 4. Hantar e-mel menggunakan cURL ke Brevo API
             $ch = curl_init('https://api.brevo.com/v3/smtp/email');
             curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
             curl_setopt($ch, CURLOPT_POST, true);
@@ -147,11 +147,17 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                     // A. Simpan rekod ke dalam database (jadual makluman_log)
                     $stmt_log = $pdo->prepare("INSERT INTO makluman_log (surat_id, nama_staf, keterangan) VALUES (?, ?, ?)");
                     $stmt_log->execute([$surat_id_val, $senarai_staf_string, 'Berjaya Dimaklumkan']);
+
+                    // B. Kemaskini kolum 'maklum_kepada' dan 'status' pada jadual 'minit_surat'
+                    if ($surat_id_val > 0) {
+                        $stmt_update = $pdo->prepare("UPDATE minit_surat SET maklum_kepada = ?, status = 'DIMAKLUM' WHERE id = ?");
+                        $stmt_update->execute([$senarai_staf_string, $surat_id_val]);
+                    }
                 } catch (PDOException $e) {
-                    // Abaikan jika ralat log
+                    // Abaikan atau paparkan ralat log jika perlu
                 }
 
-                // B. Hantar data secara auto ke Google Sheets
+                // C. Hantar data secara auto ke Google Sheets
                 $url_google_script = "https://script.google.com/macros/s/AKfycbzcrzX07aLWHi2krdCqIGTvDSFAaFmp5YjRSdUDDsfAFIrHjV1rywUCHyDmnDDcxVGy2w/exec"; 
                 if (!empty($url_google_script)) {
                     $data_to_sheets = [
@@ -169,7 +175,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                     $response_gs = curl_exec($ch_gs);
                 }
 
-                // C. Hantar fail ke Google Apps Script untuk simpan ke Google Drive
+                // D. Hantar fail ke Google Apps Script untuk simpan ke Google Drive
                 if (!empty($url_google_script) && !empty($files_to_drive)) {
                     $data_drive = [
                         "action" => "mergeAndUpload",
@@ -188,7 +194,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
                 // Redirect semula ke muka surat maklum dengan membawa ID surat asal
                 $redirect_id = !empty($surat_id) ? $surat_id : '';
-                echo "<script>alert('E-mel, log database, Google Sheets, dan simpan ke Google Drive berjaya dijalankan!'); window.location='maklum.php?id=" . $redirect_id . "';</script>";
+                echo "<script>alert('E-mel, log database, status minit surat, Google Sheets, dan simpan ke Google Drive berjaya dijalankan!'); window.location='maklum.php?id=" . $redirect_id . "';</script>";
                 exit;
 
             } else {
