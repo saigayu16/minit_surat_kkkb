@@ -88,11 +88,12 @@ if (isset($_POST['save_spreadsheet'])) {
     curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($data_to_send));
     curl_setopt($ch, CURLOPT_HTTPHEADER, ['Content-Type: application/json']);
     $response = curl_exec($ch);
-    curl_close($ch);
+    
+    // Buang curl_close($ch) kerana deprecated dalam PHP 8.5+
 
     $current_page = basename($_SERVER['PHP_SELF']);
     echo "<script>alert('Maklumat berjaya disimpan ke Google Spreadsheet!'); window.location.href='" . $current_page . "?id=" . $id . "';</script>";
-    exit;
+    exit; // Pastikan skrip berhenti sepenuhnya di sini
 }
 ?>
 
