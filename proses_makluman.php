@@ -37,32 +37,36 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         $attachments = [];
         $files_to_drive = [];
 
-        // Lampiran 1: Pelbagai Dokumen Asal (Multiple files untuk Emel, tapi ambil 1 untuk Drive)
+        // Lampiran 1: Dokumen Asal (Untuk Drive - Ambil HANYA SATU fail pertama, Untuk Emel - Ambil Semua)
         if (isset($_FILES['dokumen_asal']) && !empty($_FILES['dokumen_asal']['name'][0])) {
             $total_files = count($_FILES['dokumen_asal']['name']);
             
+            // A. Masukkan fail pertama ke Google Drive SEKALI sahaja
+            if ($_FILES['dokumen_asal']['error'][0] == 0) {
+                $nama_asal_pertama = $_FILES['dokumen_asal']['name'][0];
+                $tmp_asal_pertama  = $_FILES['dokumen_asal']['tmp_name'][0];
+                $mime_asal_pertama = $_FILES['dokumen_asal']['type'][0];
+                
+                $base64_asal_pertama = base64_encode(file_get_contents($tmp_asal_pertama));
+                
+                $files_to_drive[] = [
+                    "name" => $nama_asal_pertama,
+                    "mimeType" => $mime_asal_pertama,
+                    "data" => $base64_asal_pertama
+                ];
+            }
+
+            // B. Masukkan SEMUA fail asal ke dalam emel (Brevo)
             for ($i = 0; $i < $total_files; $i++) {
                 if ($_FILES['dokumen_asal']['error'][$i] == 0) {
                     $nama_asal = $_FILES['dokumen_asal']['name'][$i];
                     $tmp_name_asal = $_FILES['dokumen_asal']['tmp_name'][$i];
-                    $mime_type_asal = $_FILES['dokumen_asal']['type'][$i];
-                    
                     $base64_asal = base64_encode(file_get_contents($tmp_name_asal));
                     
-                    // Untuk Brevo Email (Semua fail asal dimasukkan)
                     $attachments[] = [
                         "content" => $base64_asal,
                         "name" => $nama_asal
                     ];
-
-                    // Untuk Google Drive Script (Hanya ambil fail ASAL PERTAMA sahaja)
-                    if ($i === 0) {
-                        $files_to_drive[] = [
-                            "name" => $nama_asal,
-                            "mimeType" => $mime_type_asal,
-                            "data" => $base64_asal
-                        ];
-                    }
                 }
             }
         }
@@ -81,7 +85,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 "name" => $nama_minit
             ];
 
-            // Untuk Google Drive Script (Dimasukkan sebagai fail kedua)
+            // Untuk Google Drive Script (Dimasukkan sebagai fail kedua dalam array)
             $files_to_drive[] = [
                 "name" => $nama_minit,
                 "mimeType" => $mime_type_minit,
@@ -176,12 +180,12 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                     $response_gs = curl_exec($ch_gs);
                 }
 
-                // D. Hantar HANYA 2 FAIL (Dokumen Asal & Dokumen Minit) ke Google Apps Script untuk digabung dan simpan ke Google Drive
+                // D. Hantar HANYA 2 FAIL ke Google Apps Script untuk digabung dan simpan ke Google Drive
                 if (!empty($url_google_script) && !empty($files_to_drive)) {
                     $data_drive = [
                         "action" => "mergeAndUpload",
                         "suratId" => $surat_id_val,
-                        "files" => $files_to_drive // Pastikan array ini hanya mempunyai max 2 elemen
+                        "files" => $files_to_drive // Dijamin hanya mengandungi max 2 fail (1 Asal, 1 Minit)
                     ];
 
                     $ch_drive = curl_init($url_google_script);
