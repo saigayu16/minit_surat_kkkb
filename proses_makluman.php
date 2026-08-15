@@ -11,7 +11,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     // Cegah hantaran berganda (Double Submission)
     $form_token = $_POST['form_token'] ?? '';
     if (isset($_SESSION['last_form_token']) && $_SESSION['last_form_token'] === $form_token) {
-        header("Location: maklum.php");
+        header("Location: homeadmin.php");
         exit;
     }
     if (!empty($form_token)) {
@@ -168,8 +168,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                     curl_exec($ch_drive);
                 }
 
-                $redirect_id = !empty($surat_id) ? $surat_id : '';
-                echo "<script>alert('Berjaya dihantar!'); window.location='maklum.php?id=" . $redirect_id . "';</script>";
+                // Kembali ke homeadmin.php selepas berjaya
+                echo "<script>alert('Berjaya dihantar!'); window.location='homeadmin.php';</script>";
                 exit;
 
             } else {
