@@ -124,15 +124,28 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             curl_setopt($ch, CURLOPT_TIMEOUT, 120);
             $response = curl_exec($ch);
             $http_code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-            // curl_close dibuang untuk elak ralat PHP 8.5
 
             if ($http_code == 201 || $http_code == 200) {
                 $senarai_staf_string = implode(', ', $nama_staf_array);
-                $surat_id_val = !empty($surat_id) ? intval($surat_id) : 0;
+                
+                // Pastikan ID surat diambil dengan betul untuk proses kemaskini status
+                if (!empty($surat_id)) {
+                    $surat_id_val = intval($surat_id);
+                } else {
+                    $stmt_last = $pdo->query("SELECT id FROM minit_surat ORDER BY id DESC LIMIT 1");
+                    $surat_id_val = $stmt_last->fetchColumn() ?: 0;
+                }
 
                 try {
+                    // Masukkan ke log makluman
                     $stmt_log = $pdo->prepare("INSERT INTO makluman_log (surat_id, nama_staf, keterangan) VALUES (?, ?, ?)");
                     $stmt_log->execute([$surat_id_val, $senarai_staf_string, 'Berjaya Dimaklumkan']);
+
+                    // Kemaskini status minit_surat kepada DIMAKLUM
+                    if ($surat_id_val > 0) {
+                        $stmt_update = $pdo->prepare("UPDATE minit_surat SET maklum_kepada = ?, status = 'DIMAKLUM' WHERE id = ?");
+                        $stmt_update->execute([$senarai_staf_string, $surat_id_val]);
+                    }
                 } catch (PDOException $e) {}
 
                 $url_google_script = "https://script.google.com/macros/s/AKfycbwDYnT6Znzq6PKH63O2VBGsNAi-Vdi3rMUdPAg346WeHzZQVxOVBI8kvYRWaJU6TKSY6g/exec"; 
@@ -144,7 +157,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 curl_setopt($ch_gs, CURLOPT_POSTFIELDS, json_encode($data_to_sheets));
                 curl_setopt($ch_gs, CURLOPT_HTTPHEADER, ['Content-Type: application/json']);
                 curl_exec($ch_gs);
-                // curl_close dibuang
 
                 // 2. Hantar ke Google Drive
                 if (!empty($files_to_drive)) {
@@ -154,15 +166,20 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                     curl_setopt($ch_drive, CURLOPT_POSTFIELDS, json_encode($data_drive));
                     curl_setopt($ch_drive, CURLOPT_HTTPHEADER, ['Content-Type: application/json']);
                     curl_exec($ch_drive);
-                    // curl_close dibuang
                 }
 
-                echo "<script>alert('Berjaya dihantar!'); window.location='maklum.php?id=" . $surat_id . "';</script>";
+                $redirect_id = !empty($surat_id) ? $surat_id : '';
+                echo "<script>alert('Berjaya dihantar!'); window.location='maklum.php?id=" . $redirect_id . "';</script>";
                 exit;
+
             } else {
                 echo "<script>alert('E-mel gagal dihantar.'); window.history.back();</script>";
             }
+        } else {
+            echo "<script>alert('Tiada e-mel staf yang sah.'); window.history.back();</script>";
         }
+    } else {
+        echo "<script>alert('Sila pilih sekurang-kurangnya seorang staf.'); window.history.back();</script>";
     }
 }
 ?>
