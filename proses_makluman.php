@@ -114,8 +114,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 "subject" => $perkara,
                 "htmlContent" => "
                     Assalamualaikum Dan Selamat Sejahtera<br><br>
-                    Merujuk Perkara Di Atas Adalah Untuk Tindakan Dan Makluman Pihak Tuan/Puan.<br><br>
-                    <b>Perkara:</b> {$perkara}<br><br>
+                    Merujuk perkara di atas adalah untuk tindakan dan makluman pihak tuan/puan.<br><br>
                     Sekian Terima Kasih<br><br>
                     <b>\"MALAYSIA MADANI\"</b><br><br>
                     <b>\"BERKHIDMAT UNTUK NEGARA\"</b>
