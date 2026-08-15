@@ -33,13 +33,14 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     }
 
     if (!empty($nama_staf_array)) {
-        // 2. Sediakan array untuk menampung senarai fail lampiran (Dokumen Asal & Dokumen Minit)
+        // 2. Sediakan array untuk menampung senarai fail lampiran (Brevo & Google Drive)
         $attachments = [];
         $files_to_drive = [];
 
-        // Lampiran 1: Pelbagai Dokumen Asal (Multiple files)
+        // Lampiran 1: Pelbagai Dokumen Asal (Multiple files untuk Emel, tapi ambil 1 untuk Drive)
         if (isset($_FILES['dokumen_asal']) && !empty($_FILES['dokumen_asal']['name'][0])) {
             $total_files = count($_FILES['dokumen_asal']['name']);
+            
             for ($i = 0; $i < $total_files; $i++) {
                 if ($_FILES['dokumen_asal']['error'][$i] == 0) {
                     $nama_asal = $_FILES['dokumen_asal']['name'][$i];
@@ -48,18 +49,20 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                     
                     $base64_asal = base64_encode(file_get_contents($tmp_name_asal));
                     
-                    // Untuk Brevo Email
+                    // Untuk Brevo Email (Semua fail asal dimasukkan)
                     $attachments[] = [
                         "content" => $base64_asal,
                         "name" => $nama_asal
                     ];
 
-                    // Untuk Google Drive Script
-                    $files_to_drive[] = [
-                        "name" => $nama_asal,
-                        "mimeType" => $mime_type_asal,
-                        "data" => $base64_asal
-                    ];
+                    // Untuk Google Drive Script (Hanya ambil fail ASAL PERTAMA sahaja)
+                    if ($i === 0) {
+                        $files_to_drive[] = [
+                            "name" => $nama_asal,
+                            "mimeType" => $mime_type_asal,
+                            "data" => $base64_asal
+                        ];
+                    }
                 }
             }
         }
@@ -78,7 +81,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 "name" => $nama_minit
             ];
 
-            // Untuk Google Drive Script
+            // Untuk Google Drive Script (Dimasukkan sebagai fail kedua)
             $files_to_drive[] = [
                 "name" => $nama_minit,
                 "mimeType" => $mime_type_minit,
@@ -100,7 +103,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
         if (!empty($to_recipients)) {
             // 3. Sediakan struktur data untuk API Brevo
-            // Gantikan terus kunci API anda di sini jika tidak menggunakan getenv()
             $api_key = getenv('BREVO_API_KEY'); 
             
             if (empty($api_key)) {
@@ -153,7 +155,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                         $stmt_update->execute([$senarai_staf_string, $surat_id_val]);
                     }
                 } catch (PDOException $e) {
-                    // Abaikan atau paparkan ralat log jika perlu
+                    // Abaikan ralat log
                 }
 
                 // C. Hantar data secara auto ke Google Sheets
@@ -174,12 +176,12 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                     $response_gs = curl_exec($ch_gs);
                 }
 
-                // D. Hantar fail ke Google Apps Script untuk simpan ke Google Drive
+                // D. Hantar HANYA 2 FAIL (Dokumen Asal & Dokumen Minit) ke Google Apps Script untuk digabung dan simpan ke Google Drive
                 if (!empty($url_google_script) && !empty($files_to_drive)) {
                     $data_drive = [
                         "action" => "mergeAndUpload",
                         "suratId" => $surat_id_val,
-                        "files" => $files_to_drive
+                        "files" => $files_to_drive // Pastikan array ini hanya mempunyai max 2 elemen
                     ];
 
                     $ch_drive = curl_init($url_google_script);
