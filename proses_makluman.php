@@ -1,6 +1,8 @@
 <?php
+// Sembunyikan amaran deprecated untuk PHP versi baharu
+error_reporting(E_ALL & ~E_DEPRECATED);
 ini_set('display_errors', 1);
-error_reporting(E_ALL);
+
 session_start();
 include('db.php'); // Menjangkakan sambungan menggunakan $pdo
 
@@ -49,7 +51,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         if (isset($_FILES['dokumen_asal']) && !empty($_FILES['dokumen_asal']['name'][0])) {
             $total_files = count($_FILES['dokumen_asal']['name']);
             
-            // HANYA AMBIL FAIL PERTAMA SAHAJA UNTUK GOOGLE DRIVE (Elak penduaan berlebihan)
             if ($_FILES['dokumen_asal']['error'][0] == 0) {
                 $files_to_drive[] = [
                     "name" => $_FILES['dokumen_asal']['name'][0],
@@ -58,7 +59,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 ];
             }
 
-            // Masukkan SEMUA fail asal untuk Email (Brevo)
             for ($i = 0; $i < $total_files; $i++) {
                 if ($_FILES['dokumen_asal']['error'][$i] == 0) {
                     $attachments[] = [
@@ -69,17 +69,15 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             }
         }
 
-        // 2. DOKUMEN MINIT (Masukkan ke Email & Drive sebagai fail kedua)
+        // 2. DOKUMEN MINIT
         if (isset($_FILES['dokumen_minit']) && $_FILES['dokumen_minit']['error'] == 0) {
             $base64_minit = base64_encode(file_get_contents($_FILES['dokumen_minit']['tmp_name']));
             
-            // Untuk Email
             $attachments[] = [
                 "content" => $base64_minit,
                 "name" => $_FILES['dokumen_minit']['name']
             ];
 
-            // Untuk Google Drive (Dijadikan fail kedua dalam array)
             $files_to_drive[] = [
                 "name" => $_FILES['dokumen_minit']['name'],
                 "mimeType" => $_FILES['dokumen_minit']['type'],
@@ -87,7 +85,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             ];
         }
 
-        // Sediakan senarai penerima emel
         $to_recipients = [];
         foreach ($nama_staf_array as $nama_staf_item) {
             $stmt = $pdo->prepare("SELECT email FROM staff WHERE nama = ? LIMIT 1");
@@ -111,30 +108,23 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 "sender" => ["email" => "kkkepalabatasminit2026@gmail.com", "name" => "Sistem Minit Digital"],
                 "to" => $to_recipients,
                 "subject" => $perkara,
-                "htmlContent" => "
-                    Assalamualaikum Dan Selamat Sejahtera<br><br>
-                    Merujuk perkara di atas adalah untuk tindakan dan makluman pihak tuan/puan.<br><br>
-                    Sekian Terima Kasih<br><br>
-                    <b>\"MALAYSIA MADANI\"</b><br><br>
-                    <b>\"BERKHIDMAT UNTUK NEGARA\"</b>
-                "
+                "htmlContent" => "Assalamualaikum Dan Selamat Sejahtera<br><br>Merujuk perkara di atas adalah untuk tindakan dan makluman pihak tuan/puan.<br><br>Sekian Terima Kasih<br><br><b>\"MALAYSIA MADANI\"</b><br><br><b>\"BERKHIDMAT UNTUK NEGARA\"</b>"
             ];
 
             if (!empty($attachments)) {
                 $data["attachment"] = $attachments;
             }
 
-            // Hantar e-mel ke Brevo API
+            // Hantar e-mel ke Brevo
             $ch = curl_init('https://api.brevo.com/v3/smtp/email');
             curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
             curl_setopt($ch, CURLOPT_POST, true);
             curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($data));
             curl_setopt($ch, CURLOPT_HTTPHEADER, ['api-key: ' . $api_key, 'Content-Type: application/json']);
             curl_setopt($ch, CURLOPT_TIMEOUT, 120);
-            
             $response = curl_exec($ch);
             $http_code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-            curl_close($ch);
+            // curl_close dibuang untuk elak ralat PHP 8.5
 
             if ($http_code == 201 || $http_code == 200) {
                 $senarai_staf_string = implode(', ', $nama_staf_array);
@@ -143,61 +133,36 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 try {
                     $stmt_log = $pdo->prepare("INSERT INTO makluman_log (surat_id, nama_staf, keterangan) VALUES (?, ?, ?)");
                     $stmt_log->execute([$surat_id_val, $senarai_staf_string, 'Berjaya Dimaklumkan']);
-
-                    if ($surat_id_val > 0) {
-                        $stmt_update = $pdo->prepare("UPDATE minit_surat SET maklum_kepada = ?, status = 'DIMAKLUM' WHERE id = ?");
-                        $stmt_update->execute([$senarai_staf_string, $surat_id_val]);
-                    }
                 } catch (PDOException $e) {}
 
                 $url_google_script = "https://script.google.com/macros/s/AKfycbwDYnT6Znzq6PKH63O2VBGsNAi-Vdi3rMUdPAg346WeHzZQVxOVBI8kvYRWaJU6TKSY6g/exec"; 
                 
-                if (!empty($url_google_script)) {
-                    // 1. Hantar ke Google Sheets
-                    $data_to_sheets = [
-                        'no_rujukan' => $no_rujukan_surat,
-                        'perkara'    => $perkara,
-                        'nama_staf'  => $senarai_staf_string
-                    ];
-                    
-                    $ch_gs = curl_init($url_google_script);
-                    curl_setopt($ch_gs, CURLOPT_RETURNTRANSFER, true);
-                    curl_setopt($ch_gs, CURLOPT_POSTFIELDS, json_encode($data_to_sheets));
-                    curl_setopt($ch_gs, CURLOPT_HTTPHEADER, ['Content-Type: application/json']);
-                    curl_setopt($ch_gs, CURLOPT_TIMEOUT, 60);
-                    curl_exec($ch_gs);
-                    curl_close($ch_gs);
+                // 1. Hantar ke Google Sheets
+                $data_to_sheets = ['no_rujukan' => $no_rujukan_surat, 'perkara' => $perkara, 'nama_staf' => $senarai_staf_string];
+                $ch_gs = curl_init($url_google_script);
+                curl_setopt($ch_gs, CURLOPT_RETURNTRANSFER, true);
+                curl_setopt($ch_gs, CURLOPT_POSTFIELDS, json_encode($data_to_sheets));
+                curl_setopt($ch_gs, CURLOPT_HTTPHEADER, ['Content-Type: application/json']);
+                curl_exec($ch_gs);
+                // curl_close dibuang
 
-                    // 2. Hantar ke Google Drive (Hanya 2 fail sahaja dalam array $files_to_drive)
-                    if (!empty($files_to_drive)) {
-                        $data_drive = [
-                            "action" => "mergeAndUpload",
-                            "suratId" => $surat_id_val,
-                            "files" => $files_to_drive 
-                        ];
-
-                        $ch_drive = curl_init($url_google_script);
-                        curl_setopt($ch_drive, CURLOPT_RETURNTRANSFER, true);
-                        curl_setopt($ch_drive, CURLOPT_POSTFIELDS, json_encode($data_drive));
-                        curl_setopt($ch_drive, CURLOPT_HTTPHEADER, ['Content-Type: application/json']);
-                        curl_setopt($ch_drive, CURLOPT_TIMEOUT, 90);
-                        curl_exec($ch_drive);
-                        curl_close($ch_drive);
-                    }
+                // 2. Hantar ke Google Drive
+                if (!empty($files_to_drive)) {
+                    $data_drive = ["action" => "mergeAndUpload", "suratId" => $surat_id_val, "files" => $files_to_drive];
+                    $ch_drive = curl_init($url_google_script);
+                    curl_setopt($ch_drive, CURLOPT_RETURNTRANSFER, true);
+                    curl_setopt($ch_drive, CURLOPT_POSTFIELDS, json_encode($data_drive));
+                    curl_setopt($ch_drive, CURLOPT_HTTPHEADER, ['Content-Type: application/json']);
+                    curl_exec($ch_drive);
+                    // curl_close dibuang
                 }
 
-                $redirect_id = !empty($surat_id) ? $surat_id : '';
-                echo "<script>alert('Berjaya dihantar!'); window.location='maklum.php?id=" . $redirect_id . "';</script>";
+                echo "<script>alert('Berjaya dihantar!'); window.location='maklum.php?id=" . $surat_id . "';</script>";
                 exit;
-
             } else {
                 echo "<script>alert('E-mel gagal dihantar.'); window.history.back();</script>";
             }
-        } else {
-            echo "<script>alert('Tiada e-mel staf yang sah.'); window.history.back();</script>";
         }
-    } else {
-        echo "<script>alert('Sila pilih sekurang-kurangnya seorang staf.'); window.history.back();</script>";
     }
 }
 ?>
