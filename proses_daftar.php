@@ -94,20 +94,25 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
         $api_key = getenv('BREVO_API_KEY');
         
-        $data = [
-            "sender" => ["email" => "kkkepalabatasminit2026@gmail.com", "name" => "Sistem Minit Digital"],
-            "to" => [["email" => $email_penerima]],
-            "subject" => "Notifikasi: Surat Baharu - " . $no_rujukan,
-            "htmlContent" => "
-                <p>Assalamualaikum wbt,</p>
-                <p>Terdapat surat baharu dengan no rujukan <b>{$no_rujukan}</b> untuk tindakan anda.</p>
-                <p><b>Kaedah Penerimaan:</b> {$terima_daripada}</p>
-                <p>Sila klik butang di bawah untuk masuk ke dashboard anda dan menyemak surat:</p>
-                <p><a href='{$link_sistem}' style='background: #f57c00; color: white; padding: 12px 25px; text-decoration: none; border-radius: 5px; display: inline-block; font-weight: bold;'>Buka Dashboard Sistem</a></p>
-                <p>Atau salin pautan ini ke pelayar anda: <br><a href='{$link_sistem}'>{$link_sistem}</a></p>
-                <p>Sekian, terima kasih.</p>
-            "
-        ];
+       $data = [
+        "sender" => ["email" => "kkkepalabatasminit2026@gmail.com", "name" => "Sistem Minit Digital"],
+        "to" => [["email" => $email_penerima]],
+        "subject" => "Notifikasi: Surat Baharu - " . $no_rujukan . " (" . $perkara . ")",
+        "htmlContent" => "
+            <p>Assalamualaikum dan Selamat Sejahtera,</p>
+            <p>Merujuk perkara di atas adakah untuk tindakan pihak tuan/puan.
+            <p>Terdapat surat baharu dengan no rujukan <b>{$no_rujukan}</b> untuk tindakan tuan/puan.</p>
+            <p><b>Perkara:</b> {$perkara}</p>
+            <p><b>Kaedah Penerimaan:</b> {$terima_daripada}</p>
+            <p>Sila klik butang di bawah untuk masuk ke dashboard anda dan menyemak surat:</p>
+            <p><a href='{$link_sistem}' style='background: #f57c00; color: white; padding: 12px 25px; text-decoration: none; border-radius: 5px; display: inline-block; font-weight: bold;'>Buka Dashboard Sistem</a></p>
+            <p>Atau salin pautan ini ke pelayar anda: <br><a href='{$link_sistem}'>{$link_sistem}</a></p>
+            <p>Sekian, terima kasih.</p>
+            <br>
+            <b>\"MALAYSIA MADANI\"</b><br><br>
+            <b>\"BERKHIDMAT UNTUK NEGARA\"</b>
+        "
+    ];
 
         if ($base64_file && $file_name) {
             $data["attachment"] = [["content" => $base64_file, "name" => $file_name]];
