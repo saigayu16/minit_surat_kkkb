@@ -336,7 +336,7 @@ $admin_name = $_SESSION['user_name'] ?? 'Admin Sistem';
                         <option value="EMAIL RASMI">Email Rasmi</option>
                         <option value="EMAIL PENGARAH">Email Pengarah</option>
                         <option value="MELALUI POS">Melalui Pos</option>
-                        <option value="SERAHAN TANGAN">Serahan Tangan</option>
+                        <option value="SERAHAN TANGAN/TELEGRAM PEGAWAI">Serahan Tangan/Telegram Pegawai</option>
                     </select>
                 </div>
             </div>
