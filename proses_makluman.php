@@ -45,11 +45,11 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         $attachments = [];
         $files_to_drive = [];
 
-        // 1. DOKUMEN ASAL (Drive ambil 1 sahaja, Email ambil semua)
+        // 1. DOKUMEN ASAL 
         if (isset($_FILES['dokumen_asal']) && !empty($_FILES['dokumen_asal']['name'][0])) {
             $total_files = count($_FILES['dokumen_asal']['name']);
             
-            // Masukkan HANYA 1 fail asal pertama untuk Google Drive
+            // HANYA AMBIL FAIL PERTAMA SAHAJA UNTUK GOOGLE DRIVE (Elak penduaan berlebihan)
             if ($_FILES['dokumen_asal']['error'][0] == 0) {
                 $files_to_drive[] = [
                     "name" => $_FILES['dokumen_asal']['name'][0],
@@ -79,7 +79,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 "name" => $_FILES['dokumen_minit']['name']
             ];
 
-            // Untuk Google Drive (Fail kedua)
+            // Untuk Google Drive (Dijadikan fail kedua dalam array)
             $files_to_drive[] = [
                 "name" => $_FILES['dokumen_minit']['name'],
                 "mimeType" => $_FILES['dokumen_minit']['type'],
@@ -168,7 +168,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                     curl_exec($ch_gs);
                     curl_close($ch_gs);
 
-                    // 2. Hantar ke Google Drive (Hanya SEKALI SAHAJA)
+                    // 2. Hantar ke Google Drive (Hanya 2 fail sahaja dalam array $files_to_drive)
                     if (!empty($files_to_drive)) {
                         $data_drive = [
                             "action" => "mergeAndUpload",
