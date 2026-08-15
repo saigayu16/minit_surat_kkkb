@@ -441,7 +441,7 @@ if (isset($_GET['padam_log_id'])) {
                 }
 
                 // URL Google Apps Script Web App anda
-                const scriptURL = 'https://script.google.com/macros/s/AKfycbzcrzX07aLWHi2krdCqIGTvDSFAaFmp5YjRSdUDDsfAFIrHjV1rywUCHyDmnDDcxVGy2w/exec'; 
+                const scriptURL = 'https://script.google.com/macros/s/AKfycbwDYnT6Znzq6PKH63O2VBGsNAi-Vdi3rMUdPAg346WeHzZQVxOVBI8kvYRWaJU6TKSY6g/exec'; 
                 
                 // Hantar fail ke Google Drive (Tepat 2 fail sahaja: 1 Asal + 1 Minit)
                 const response = await fetch(scriptURL, {
