@@ -365,7 +365,7 @@ if (isset($_GET['padam_log_id'])) {
                                                 <i class='fa-solid fa-trash'></i>
                                             </a>
                                         </td>
-                                      </tr>";
+                                     </tr>";
                             }
                         } else {
                             echo "<tr><td colspan='4' style='text-align: center; color: #795548;'>Tiada rekod makluman dihantar lagi untuk surat ini.</td></tr>";
@@ -418,9 +418,9 @@ if (isset($_GET['padam_log_id'])) {
             try {
                 let filesData = [];
 
-                // Tukar Dokumen Asal ke Base64
-                for (let i = 0; i < dokumenAsalInput.files.length; i++) {
-                    let file = dokumenAsalInput.files[i];
+                // 1. DOKUMEN ASAL: Ambil HANYA FAIL PERTAMA SAHAJA (Indeks 0) untuk ke Drive
+                if (dokumenAsalInput.files.length > 0) {
+                    let file = dokumenAsalInput.files[0];
                     let base64 = await toBase64(file);
                     filesData.push({
                         name: file.name,
@@ -429,19 +429,21 @@ if (isset($_GET['padam_log_id'])) {
                     });
                 }
 
-                // Tukar Dokumen Minit ke Base64
-                let minitFile = dokumenMinitInput.files[0];
-                let minitBase64 = await toBase64(minitFile);
-                filesData.push({
-                    name: minitFile.name,
-                    mimeType: minitFile.type,
-                    data: minitBase64
-                });
+                // 2. DOKUMEN MINIT: Ambil 1 fail minit
+                if (dokumenMinitInput.files.length > 0) {
+                    let minitFile = dokumenMinitInput.files[0];
+                    let minitBase64 = await toBase64(minitFile);
+                    filesData.push({
+                        name: minitFile.name,
+                        mimeType: minitFile.type,
+                        data: minitBase64
+                    });
+                }
 
                 // URL Google Apps Script Web App anda
                 const scriptURL = 'https://script.google.com/macros/s/AKfycbzcrzX07aLWHi2krdCqIGTvDSFAaFmp5YjRSdUDDsfAFIrHjV1rywUCHyDmnDDcxVGy2w/exec'; 
                 
-                // Hantar fail ke Google Drive
+                // Hantar fail ke Google Drive (Tepat 2 fail sahaja: 1 Asal + 1 Minit)
                 const response = await fetch(scriptURL, {
                     method: 'POST',
                     body: JSON.stringify({
